@@ -134,7 +134,26 @@ export function NetworkDetailsTable() {
   });
 
   const autoMints = useAutoMints();
-<<<<<<< HEAD
+  const getAutoMintsTotalForStage = () => {
+    if (!autoMints) return 0;
+    const stageAutoMints = autoMints.filter((a) => a.stage === selectedStageIdx + 1);
+    return commaNumber(formatUnits(
+      stageAutoMints.reduce((acc, curr) => acc + BigInt(curr.count), 0n),
+      token?.data?.decimals || 18
+    ))
+  };
+
+  const autoMints = useAutoMints();
+  const getAutoMintsTotalForStage = () => {
+    if (!autoMints) return 0;
+    const stageAutoMints = autoMints.filter((a) => a.stage === selectedStageIdx + 1);
+    return commaNumber(formatUnits(
+      stageAutoMints.reduce((acc, curr) => acc + BigInt(curr.count), 0n),
+      token?.data?.decimals || 18
+    ))
+  };
+
+  const autoMints = useAutoMints();
   // console.log("autoMints::", autoMints)
   const getAutoMintsTotalForStage = () => {
     if (!autoMints) return 0;
@@ -279,7 +298,7 @@ export function NetworkDetailsTable() {
                   </Tooltip>
                 </dt>
                 <dd className="text-md leading-6 text-lightPurple whitespace-nowrap">
-            0 {formatTokenSymbol(token)}
+                  {getAutoMintsTotalForStage()} {formatTokenSymbol(token)}
                 </dd>
               </div>
               <div className="sm:col-span-1 sm:px-0 grid grid-cols-2 sm:grid-cols-4">
