@@ -17,6 +17,10 @@ export function useAutoMints() {
     StoreAutoMintAmountEventsDocument,
     {
       where: { revnetId: String(projectId) },
+<<<<<<< HEAD
+=======
+      first: 1,
+>>>>>>> 9acf630 (fix(automints): fix up automints, refine homepage to open links in same window new one got annoying)
     }
   );
 
@@ -26,6 +30,10 @@ export function useAutoMints() {
   });
 
   const autoMints = useMemo(() => {
+<<<<<<< HEAD
+=======
+    console.log("rulesets?.length", rulesets?.length)
+>>>>>>> 9acf630 (fix(automints): fix up automints, refine homepage to open links in same window new one got annoying)
     return autoMintsData?.storeAutoMintAmountEvents.map((automint) => {
       const rulesetIndex =
         rulesets?.findIndex((r) => String(r.id) === automint.stageId) || 0;

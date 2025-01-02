@@ -134,16 +134,25 @@ export function NetworkDetailsTable() {
   });
 
   const autoMints = useAutoMints();
+<<<<<<< HEAD
   // console.log("autoMints::", autoMints)
   const getAutoMintsTotalForStage = () => {
     if (!autoMints) return 0;
     console.log("selectedStageIdx", selectedStageIdx + 1)
+=======
+  const getAutoMintsTotalForStage = () => {
+    if (!autoMints) return 0;
+>>>>>>> 9acf630 (fix(automints): fix up automints, refine homepage to open links in same window new one got annoying)
     const stageAutoMints = autoMints.filter((a) => a.stage === selectedStageIdx + 1);
     return commaNumber(formatUnits(
       stageAutoMints.reduce((acc, curr) => acc + BigInt(curr.count), 0n),
       token?.data?.decimals || 18
     ))
   };
+<<<<<<< HEAD
+=======
+
+>>>>>>> 9acf630 (fix(automints): fix up automints, refine homepage to open links in same window new one got annoying)
   if (!selectedStage) return null;
 
   const toggleDropdown = () => {
@@ -260,7 +269,11 @@ export function NetworkDetailsTable() {
                     </div>
                   </Tooltip>
                 </dt>
+<<<<<<< HEAD
                 <dd className="text-md leading-6 text-lightPurple whitespace-nowrap">
+=======
+                <dd className="text-md leading-6 text-zinc-700 whitespace-nowrap">
+>>>>>>> 9acf630 (fix(automints): fix up automints, refine homepage to open links in same window new one got annoying)
                   {getAutoMintsTotalForStage()} {formatTokenSymbol(token)}
                 </dd>
               </div>
