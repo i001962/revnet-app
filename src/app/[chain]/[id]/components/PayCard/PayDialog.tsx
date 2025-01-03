@@ -1,3 +1,5 @@
+import { chainNames } from "@/app/constants";
+import { chainNames } from "@/app/constants";
 import { ButtonWithWallet } from "@/components/ButtonWithWallet";
 import { ChainLogo } from "@/components/ChainLogo";
 import { ChainLogo } from "@/components/ChainLogo";
@@ -89,7 +91,7 @@ export function PayDialog({
   const { toast } = useToast();
   const loading = isWriteLoading || isTxLoading;
   const suckersQuery = useSuckers();
-  const suckers = suckersQuery.data;
+  const suckers = suckersQuery.data?.suckers as SuckerPair[] | undefined;
 
   useEffect(() => {
     if (isError && error) {
@@ -228,7 +230,6 @@ export function PayDialog({
               ) : (
                 selectedSucker && (
                   <div className="flex flex-col mt-4">
-                    <div className="text-xs text-fontRed">{amountB.symbol} is only on:</div>
                     <div className="text-xs text-slate-500">
                       {amountB.symbol} is only on:
                     </div>

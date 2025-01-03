@@ -82,8 +82,11 @@ export function Header() {
               ) : null}
             </span>
             <div className="text-sm flex gap-2 items-baseline">
-              <h1 className="text-2xl font-medium">{projectName}</h1>
-              {suckers?.map((pair) => {
+              <h1 className="text-2xl font-medium">
+                {projectName}
+              </h1>
+              {(suckerPairs.data?.suckers as SuckerPair[])?.map((pair) => {
+                console.log({ pair });
                 if (!pair) return null;
 
                 const networkSlug =
