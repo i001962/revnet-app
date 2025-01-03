@@ -1,22 +1,19 @@
 import {
-  useJBChainId,
-  useJBContractContext,
-  useJBRulesetContext,
-  useJBTokenContext,
-  useReadJbControllerPendingReservedTokenBalanceOf,
-  useReadJbSplitsSplitsOf,
-  useSuckers,
-} from "juice-sdk-react";
-import {
   ChainIdToChain,
   RESERVED_TOKEN_SPLIT_GROUP_ID,
   chainNames,
 } from "@/app/constants";
-import { Badge } from "@/components/ui/badge";
-import { ForwardIcon } from "@heroicons/react/24/solid";
+import { ChainLogo } from "@/components/ChainLogo";
 import { EthereumAddress } from "@/components/EthereumAddress";
-import { useBoostRecipient } from "@/hooks/useBoostRecipient";
 import EtherscanLink from "@/components/EtherscanLink";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -25,27 +22,26 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useBoostRecipient } from "@/hooks/useBoostRecipient";
+import { formatTokenSymbol } from "@/lib/utils";
+import { ForwardIcon } from "@heroicons/react/24/solid";
 import {
-  JBChainId,
+  SuckerPair,
   formatUnits,
   jbProjectDeploymentAddresses,
 } from "juice-sdk-core";
-import { useEffect, useState } from "react";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { ChainLogo } from "@/components/ChainLogo";
-import { formatTokenSymbol } from "@/lib/utils";
+  JBChainId,
+  useJBChainId,
+  useJBContractContext,
+  useJBRulesetContext,
+  useJBTokenContext,
+  useReadJbControllerPendingReservedTokenBalanceOf,
+  useReadJbSplitsSplitsOf,
+  useSuckers,
+} from "juice-sdk-react";
+import { useEffect, useState } from "react";
 import { Address } from "viem";
-
-type Sucker = {
-  peerChainId: JBChainId;
-  projectId: bigint;
-};
 
 export function SplitsSection() {
   const { projectId } = useJBContractContext();
@@ -53,10 +49,12 @@ export function SplitsSection() {
   const { ruleset } = useJBRulesetContext();
   const { token } = useJBTokenContext();
   const boostRecipient = useBoostRecipient();
-  const [selectedSucker, setSelectedSucker] = useState<Sucker>();
-  const { data: suckers } = useSuckers() as { data: Sucker[] };
+  const [selectedSucker, setSelectedSucker] = useState<SuckerPair>();
+  const suckersQuery = useSuckers();
+  const suckers = (suckersQuery.data as { suckers: SuckerPair[] | null })
+    ?.suckers;
   const { data: reservedTokenSplits, isLoading } = useReadJbSplitsSplitsOf({
-    chainId: selectedSucker?.peerChainId,
+    chainId: selectedSucker?.peerChainId as JBChainId | undefined,
     args:
       ruleset && ruleset?.data
         ? [projectId, BigInt(ruleset.data.id), RESERVED_TOKEN_SPLIT_GROUP_ID]
@@ -67,8 +65,8 @@ export function SplitsSection() {
       chainId: selectedSucker?.peerChainId,
       address: selectedSucker?.peerChainId
         ? (jbProjectDeploymentAddresses.JBController[
-          selectedSucker?.peerChainId
-        ] as Address)
+            selectedSucker.peerChainId as JBChainId
+          ] as Address)
         : undefined,
       args: ruleset && ruleset?.data ? [projectId] : undefined,
     });
@@ -95,7 +93,7 @@ export function SplitsSection() {
           at any time.
         </p>
       </div>
-      {suckers?.length > 1 && (
+      {suckers && suckers.length > 1 && (
         <div className="mt-2 mb-4">
           <div className="text-sm text-zinc-500">See splits on</div>
           <Select
@@ -117,8 +115,8 @@ export function SplitsSection() {
                   className="flex items-center gap-2"
                 >
                   <div className="flex items-center gap-2">
-                    <ChainLogo chainId={s.peerChainId} />
-                    <span>{chainNames[s.peerChainId]}</span>
+                    <ChainLogo chainId={s.peerChainId as JBChainId} />
+                    <span>{chainNames[s.peerChainId as JBChainId]}</span>
                   </div>
                 </SelectItem>
               ))}
@@ -157,59 +155,65 @@ export function SplitsSection() {
                   </TableCell>
                 </TableRow>
               ) : (
-                reservedTokenSplits?.map((split) => (
-                  <TableRow key={split.beneficiary}>
-                    <TableCell>
-                      <div className="flex flex-col sm:flex-row text-sm">
-                        <EthereumAddress
-                          address={split.beneficiary}
-                          chain={
-                            selectedSucker
-                              ? ChainIdToChain[selectedSucker.peerChainId]
-                              : chainId
+                reservedTokenSplits?.map(
+                  (split: { beneficiary: Address; percent: number }) => (
+                    <TableRow key={split.beneficiary}>
+                      <TableCell>
+                        <div className="flex flex-col sm:flex-row text-sm">
+                          <EthereumAddress
+                            address={split.beneficiary}
+                            chain={
+                              selectedSucker
+                                ? ChainIdToChain[
+                                    selectedSucker.peerChainId as JBChainId
+                                  ]
+                                : chainId
                                 ? ChainIdToChain[chainId]
                                 : undefined
-                          }
-                          short
-                          withEnsAvatar
-                          withEnsName
-                          className="hidden sm:block"
-                        />
-                        <EthereumAddress
-                          address={split.beneficiary}
-                          chain={
-                            selectedSucker
-                              ? ChainIdToChain[selectedSucker.peerChainId]
-                              : chainId
+                            }
+                            short
+                            withEnsAvatar
+                            withEnsName
+                            className="hidden sm:block"
+                          />
+                          <EthereumAddress
+                            address={split.beneficiary}
+                            chain={
+                              selectedSucker
+                                ? ChainIdToChain[
+                                    selectedSucker.peerChainId as JBChainId
+                                  ]
+                                : chainId
                                 ? ChainIdToChain[chainId]
                                 : undefined
-                          }
-                          short
-                          avatarProps={{ size: "sm" }}
-                          withEnsAvatar
-                          withEnsName
-                          className="block sm:hidden"
-                        />
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {formatUnits(BigInt(split.percent), 7)} %
-                    </TableCell>
-                    <TableCell>
-                      {pendingReserveTokenBalance
-                        ? `
+                            }
+                            short
+                            avatarProps={{ size: "sm" }}
+                            withEnsAvatar
+                            withEnsName
+                            className="block sm:hidden"
+                          />
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {formatUnits(BigInt(split.percent), 7)} %
+                      </TableCell>
+                      <TableCell>
+                        {pendingReserveTokenBalance
+                          ? `
                           ${formatUnits(
-                    (pendingReserveTokenBalance *
+                            (pendingReserveTokenBalance *
                               BigInt(split.percent)) /
                               BigInt(10 ** 9),
-                    18
-                  )}
+                            18
+                          )}
                           ${formatTokenSymbol(token.data?.symbol)}
                         `
-                        : "?"}
-                    </TableCell>
-                  </TableRow>
-                ))
+                          : "?"}
+                      </TableCell>
+                    </TableRow>
+                  )
+                )
               )}
             </TableBody>
           </Table>

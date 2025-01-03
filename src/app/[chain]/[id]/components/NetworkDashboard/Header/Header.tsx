@@ -32,8 +32,9 @@ export function Header() {
     },
     first: 1,
   });
-  const suckerPairs = useSuckers();
-
+  const suckersQuery = useSuckers();
+  const suckers = (suckersQuery.data as { suckers: SuckerPair[] | null })
+    ?.suckers;
   const { contributorsCount } = projects?.projects?.[0] ?? {};
   const { name: projectName, logoUri } = metadata?.data ?? {};
   const issuance = useFormattedTokenIssuance();
@@ -79,17 +80,16 @@ export function Header() {
               {token?.data ? (
                 <EtherscanLink
                   value={token.data.address}
-                  className="tracking-tight"
                 >
                   {formatTokenSymbol(token)}
                 </EtherscanLink>
               ) : null}
             </span>
             <div className="text-sm flex gap-2 items-baseline">
-              <h1 className="text-2xl font-medium tracking-tight">
+              <h1 className="text-2xl font-medium">
                 {projectName}
               </h1>
-              {(suckerPairs.data as SuckerPair[])?.map((pair) => {
+              {suckers?.map((pair) => {
                 if (!pair) return null;
 
                 const networkName = chainIdMap[pair?.peerChainId as JBChainId];
