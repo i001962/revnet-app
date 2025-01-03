@@ -90,7 +90,8 @@ export function Header() {
               <h1 className="text-2xl font-medium tracking-tight text-lightPurple">
                 {projectName}
               </h1>
-              {suckers?.map((pair) => {
+              {(suckerPairs.data?.suckers as SuckerPair[])?.map((pair) => {
+                console.log({ pair });
                 if (!pair) return null;
 
                 const networkName = chainIdMap[pair?.peerChainId as JBChainId];

@@ -1,5 +1,7 @@
 import { chainNames } from "@/app/constants";
+import { chainNames } from "@/app/constants";
 import { ButtonWithWallet } from "@/components/ButtonWithWallet";
+import { ChainLogo } from "@/components/ChainLogo";
 import { ChainLogo } from "@/components/ChainLogo";
 import { TokenAmount } from "@/components/TokenAmount";
 import { Button } from "@/components/ui/button";
@@ -17,7 +19,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Stat } from "@/components/ui/stat";
+import { useToast } from "@/components/ui/use-toast";
+import {
+  JBChainId,
+  NATIVE_TOKEN,
+  SuckerPair,
+  TokenAmountType,
+} from "juice-sdk-core";
 import { useToast } from "@/components/ui/use-toast";
 import {
   JBChainId,
@@ -31,6 +47,9 @@ import {
   useSuckers,
   useWriteJbMultiTerminalPay,
 } from "juice-sdk-react";
+import { useEffect, useState } from "react";
+import { Address } from "viem";
+import { useAccount, useWaitForTransactionReceipt } from "wagmi";
 import { useEffect, useState } from "react";
 import { Address } from "viem";
 import { useAccount, useWaitForTransactionReceipt } from "wagmi";
@@ -62,6 +81,7 @@ export function PayDialog({
   } = useWriteJbMultiTerminalPay();
   const chainId = useJBChainId();
   const [selectedSucker, setSelectedSucker] = useState<SuckerPair>();
+  const [selectedSucker, setSelectedSucker] = useState<SuckerPair>();
   const txHash = data;
   const { isLoading: isTxLoading, isSuccess } = useWaitForTransactionReceipt({
     hash: txHash,
@@ -69,14 +89,16 @@ export function PayDialog({
   const { toast } = useToast();
   const loading = isWriteLoading || isTxLoading;
   const suckersQuery = useSuckers();
-  const suckers = (suckersQuery.data as { suckers: SuckerPair[] | null })
-    ?.suckers;
+  const suckers = suckersQuery.data?.suckers as SuckerPair[] | undefined;
 
   useEffect(() => {
     if (isError && error) {
       toast({
         variant: "destructive",
         title: "Error",
+        description:
+          error.message ||
+          "An error occurred while processing your contribution",
         description:
           error.message ||
           "An error occurred while processing your contribution",
@@ -90,6 +112,7 @@ export function PayDialog({
     }
     if (suckers && !selectedSucker) {
       const i = suckers.findIndex((s) => s.peerChainId === chainId);
+      setSelectedSucker(suckers[i]);
       setSelectedSucker(suckers[i]);
     }
   }, [suckers, chainId, projectId, selectedSucker]);
@@ -141,6 +164,7 @@ export function PayDialog({
                       <TokenAmount amount={amountB} />
                     </Stat>
                     {memo && <Stat label="Memo">{memo}</Stat>}
+                    {memo && <Stat label="Memo">{memo}</Stat>}
                   </div>
                   {isTxLoading ? (
                     <div>Transaction submitted, awaiting confirmation...</div>
@@ -151,6 +175,7 @@ export function PayDialog({
           </DialogDescription>
           {!isSuccess ? (
             <div className="flex flex-row justify-between items-end">
+              {suckers && suckers.length > 1 ? (
               {suckers && suckers.length > 1 ? (
                 <div className="flex flex-col mt-4">
                   <div className="text-sm text-lightPurple">
@@ -165,8 +190,17 @@ export function PayDialog({
                         ? String(suckers.indexOf(selectedSucker))
                         : undefined
                     }
+                    onValueChange={(v) =>
+                      setSelectedSucker(suckers[parseInt(v)])
+                    }
+                    value={
+                      selectedSucker
+                        ? String(suckers.indexOf(selectedSucker))
+                        : undefined
+                    }
                   >
                     <SelectTrigger className="w-[200px]">
+                      <SelectValue placeholder="Select chain"></SelectValue>
                       <SelectValue placeholder="Select chain"></SelectValue>
                     </SelectTrigger>
                     <SelectContent>
@@ -181,6 +215,10 @@ export function PayDialog({
                             <span>
                               {chainNames[s.peerChainId as JBChainId]}
                             </span>
+                            <ChainLogo chainId={s.peerChainId as JBChainId} />
+                            <span>
+                              {chainNames[s.peerChainId as JBChainId]}
+                            </span>
                           </div>
                         </SelectItem>
                       ))}
@@ -190,8 +228,14 @@ export function PayDialog({
               ) : (
                 selectedSucker && (
                   <div className="flex flex-col mt-4">
-                    <div className="text-xs text-fontRed">{amountB.symbol} is only on:</div>
+                    <div className="text-xs text-slate-500">
+                      {amountB.symbol} is only on:
+                    </div>
                     <div className=" flex flex-row items-center gap-2 pl-3 min-w-fit pr-5 py-2 border rounded-sm ring-offset-white">
+                      <ChainLogo
+                        chainId={selectedSucker.peerChainId as JBChainId}
+                      />
+                      {chainNames[selectedSucker.peerChainId as JBChainId]}
                       <ChainLogo
                         chainId={selectedSucker.peerChainId as JBChainId}
                       />
@@ -201,6 +245,9 @@ export function PayDialog({
                 )
               )}
               <ButtonWithWallet
+                targetChainId={
+                  selectedSucker?.peerChainId as JBChainId | undefined
+                }
                 targetChainId={
                   selectedSucker?.peerChainId as JBChainId | undefined
                 }

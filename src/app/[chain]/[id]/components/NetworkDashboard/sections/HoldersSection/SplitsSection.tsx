@@ -26,6 +26,8 @@ import { useBoostRecipient } from "@/hooks/useBoostRecipient";
 import { formatTokenSymbol } from "@/lib/utils";
 import { ForwardIcon } from "@heroicons/react/24/solid";
 import {
+  JBChainId,
+  JBSplit,
   SuckerPair,
   formatUnits,
   jbProjectDeploymentAddresses,
@@ -51,8 +53,7 @@ export function SplitsSection() {
   const boostRecipient = useBoostRecipient();
   const [selectedSucker, setSelectedSucker] = useState<SuckerPair>();
   const suckersQuery = useSuckers();
-  const suckers = (suckersQuery.data as { suckers: SuckerPair[] | null })
-    ?.suckers;
+  const suckers = suckersQuery.data?.suckers as SuckerPair[] | undefined;
   const { data: reservedTokenSplits, isLoading } = useReadJbSplitsSplitsOf({
     chainId: selectedSucker?.peerChainId as JBChainId | undefined,
     args:
@@ -65,6 +66,8 @@ export function SplitsSection() {
       chainId: selectedSucker?.peerChainId,
       address: selectedSucker?.peerChainId
         ? (jbProjectDeploymentAddresses.JBController[
+            selectedSucker.peerChainId as JBChainId
+          ] as Address)
             selectedSucker.peerChainId as JBChainId
           ] as Address)
         : undefined,
@@ -94,6 +97,7 @@ export function SplitsSection() {
         </p>
       </div>
       {suckers && suckers.length > 1 && (
+      {suckers && suckers.length > 1 && (
         <div className="mt-2 mb-4">
           <div className="text-sm text-lighPurple">See splits on</div>
           <Select
@@ -115,6 +119,8 @@ export function SplitsSection() {
                   className="flex items-center gap-2"
                 >
                   <div className="flex items-center gap-2">
+                    <ChainLogo chainId={s.peerChainId as JBChainId} />
+                    <span>{chainNames[s.peerChainId as JBChainId]}</span>
                     <ChainLogo chainId={s.peerChainId as JBChainId} />
                     <span>{chainNames[s.peerChainId as JBChainId]}</span>
                   </div>
@@ -155,56 +161,58 @@ export function SplitsSection() {
                   </TableCell>
                 </TableRow>
               ) : (
-                reservedTokenSplits?.map(
-                  (split: { beneficiary: Address; percent: number }) => (
-                    <TableRow key={split.beneficiary}>
-                      <TableCell>
-                        <div className="flex flex-col sm:flex-row text-sm">
-                          <EthereumAddress
-                            address={split.beneficiary}
-                            chain={
-                              selectedSucker
-                                ? ChainIdToChain[
-                                    selectedSucker.peerChainId as JBChainId
-                                  ]
-                                : chainId
-                                ? ChainIdToChain[chainId]
-                                : undefined
-                            }
-                            short
-                            withEnsAvatar
-                            withEnsName
-                            className="hidden sm:block"
-                          />
-                          <EthereumAddress
-                            address={split.beneficiary}
-                            chain={
-                              selectedSucker
-                                ? ChainIdToChain[
-                                    selectedSucker.peerChainId as JBChainId
-                                  ]
-                                : chainId
-                                ? ChainIdToChain[chainId]
-                                : undefined
-                            }
-                            short
-                            avatarProps={{ size: "sm" }}
-                            withEnsAvatar
-                            withEnsName
-                            className="block sm:hidden"
-                          />
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {formatUnits(BigInt(split.percent), 7)} %
-                      </TableCell>
-                      <TableCell>
-                        {pendingReserveTokenBalance
-                          ? `
+                reservedTokenSplits?.map((split: JBSplit) => (
+                  <TableRow key={split.beneficiary}>
+                    <TableCell>
+                      <div className="flex flex-col sm:flex-row text-sm">
+                        <EthereumAddress
+                          address={split.beneficiary}
+                          chain={
+                            selectedSucker
+                              ? ChainIdToChain[
+                                  selectedSucker.peerChainId as JBChainId
+                                ]
+                              : chainId
+                              ? ChainIdToChain[chainId]
+                              : undefined
+                          }
+                          short
+                          withEnsAvatar
+                          withEnsName
+                          className="hidden sm:block"
+                        />
+                        <EthereumAddress
+                          address={split.beneficiary}
+                          chain={
+                            selectedSucker
+                              ? ChainIdToChain[
+                                  selectedSucker.peerChainId as JBChainId
+                                ]
+                              : chainId
+                              ? ChainIdToChain[chainId]
+                              : undefined
+                          }
+                          short
+                          avatarProps={{ size: "sm" }}
+                          withEnsAvatar
+                          withEnsName
+                          className="block sm:hidden"
+                        />
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {formatUnits(BigInt(split.percent), 7)} %
+                    </TableCell>
+                    <TableCell>
+                      {pendingReserveTokenBalance
+                        ? `
                           ${formatUnits(
+                            (pendingReserveTokenBalance *
                             (pendingReserveTokenBalance *
                               BigInt(split.percent)) /
                               BigInt(10 ** 9),
+                            18
+                          )}
                             18
                           )}
                           ${formatTokenSymbol(token.data?.symbol)}
