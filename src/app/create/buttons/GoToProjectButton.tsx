@@ -5,6 +5,8 @@ import { JBChainId } from "juice-sdk-react";
 import { FastForwardIcon } from "lucide-react";
 import { chainIdMap } from "@/app/constants";
 import { useState } from "react";
+import sdk from "@farcaster/frame-sdk";
+import { useEffect } from "react";
 
 export function GoToProjectButton({
   txHash,
@@ -14,6 +16,19 @@ export function GoToProjectButton({
   chainId?: JBChainId,
 }) {
   const [isLoading, setIsLoading] = useState(false);
+
+  const [isLoadingIpfs, setIsLoadingIpfs] = useState<boolean>(false);
+  const [isSDKLoaded, setIsSDKLoaded] = useState(false);
+
+  useEffect(() => {
+    const load = async () => {
+      sdk.actions.ready();
+    };
+    if (sdk && !isSDKLoaded) {
+      setIsSDKLoaded(true);
+      load();
+    }
+  }, [isSDKLoaded]);
 
   const { data } = useTransactionReceipt({
     chainId,
@@ -34,7 +49,7 @@ export function GoToProjectButton({
           size="lg"
           disabled={!projectId}
           loading={isLoading}
-          className="transition-all duration-200 mt-2"
+          className="transition-all duration-200 mt-2 bg-deepPink text-lightPurple hover:bg-deepPink"
           onClick={() => setIsLoading(true)}
         >
           Go to your revnet

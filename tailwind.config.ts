@@ -35,6 +35,16 @@ module.exports = {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },
+      colors: {
+        deepPink: "#BD195D",
+        purplePanel: "#010513",
+        darkPurple: "#181424",
+        limeGreen: "#32CD32", //'#A2E634', // defifa '#32CD32', #8cc929
+        limeGreenOpacity: "rgba(162, 230, 52, 0.7)",
+        lightPurple: "#C0B2F0",
+        fontRed: "#EC017C",
+        notWhite: "#FEA282",
+      },
     },
   },
   plugins: [require("tailwindcss-animate"), require("@tailwindcss/forms")],

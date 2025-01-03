@@ -51,7 +51,7 @@ export function Header() {
             <div className="sm:hidden">
               <Image
                 src={ipfsUriToGatewayUrl(logoUri)}
-                className="overflow-hidden block border border-zinc-200"
+                className="overflow-hidden"
                 alt={"revnet logo"}
                 width={120}
                 height={10}
@@ -60,7 +60,7 @@ export function Header() {
             <div className="sm:block hidden">
               <Image
                 src={ipfsUriToGatewayUrl(logoUri)}
-                className="overflow-hidden block border border-zinc-200"
+                className="overflow-hidden"
                 alt={"revnet logo"}
                 width={144}
                 height={144}
@@ -68,8 +68,8 @@ export function Header() {
             </div>
           </>
         ) : (
-          <div className="rounded-lg bg-zinc-100 h-36 w-36 flex items-center justify-center">
-            <ForwardIcon className="h-5 w-5 text-zinc-700" />
+          <div className="rounded-lg bg-red h-36 w-36 flex items-center justify-center">
+            <ForwardIcon className="h-5 w-5 text-lighPurple" />
           </div>
         )}
 
@@ -79,14 +79,14 @@ export function Header() {
               {token?.data ? (
                 <EtherscanLink
                   value={token.data.address}
-                  className="tracking-tight"
+                  className="tracking-tight text-notWhite"
                 >
                   {formatTokenSymbol(token)}
                 </EtherscanLink>
               ) : null}
             </span>
             <div className="text-sm flex gap-2 items-baseline">
-              <h1 className="text-2xl font-medium tracking-tight">
+              <h1 className="text-2xl font-medium tracking-tight text-lightPurple">
                 {projectName}
               </h1>
               {(suckerPairs.data as SuckerPair[])?.map((pair) => {
@@ -112,20 +112,20 @@ export function Header() {
           <div className="flex sm:flex-row flex-col sm:items-center items-leading sm:gap-4 items-start">
             <TvlDatum />
             <div className="sm:text-xl text-lg">
-              <span className="font-medium text-black-500">
+              <span className="font-medium text-lightPurple">
                 {contributorsCount ?? 0}
               </span>{" "}
-              <span className="text-zinc-500">
+              <span className="text-lightPurple">
                 {contributorsCount === 1 ? "owner" : "owners"}
               </span>
             </div>
             <div className="sm:text-xl text-lg">
-              <span className="font-medium text-zinc-500">
+              <span className="font-medium text-lightPurple">
                 {!cashOutLoading
                   ? `$${Number(cashOutValue).toFixed(2)}`
                   : "..."}
               </span>{" "}
-              <span className="text-zinc-500">cash out value</span>
+              <span className="text-lightPurple">cash out value</span>
             </div>
           </div>
         </div>

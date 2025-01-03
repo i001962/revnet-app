@@ -5,14 +5,14 @@ import { ChainBadge } from "../ChainBadge";
 
 export function Nav() {
   return (
-    <nav className="text-zinc-50 border-b border-zinc-100">
+    <nav className="text-teal-500 border-b border-zinc-100">
       <div className="flex justify-between items-center px-4 sm:container py-3">
         <div className="flex items-center gap-2">
           <Link href="/" className="italic">
             <Image
-              src="/assets/img/small-bw.svg"
-              width={60}
-              height={60}
+              src="/assets/img/revnet-full.png"
+              width={100}
+              height={100}
               alt="Revnet logo"
             />
           </Link>

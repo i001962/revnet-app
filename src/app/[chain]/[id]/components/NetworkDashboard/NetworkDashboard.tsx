@@ -7,7 +7,6 @@ import {
   useJBTokenContext,
 } from "juice-sdk-react";
 import { notFound } from "next/navigation";
-import { useEffect } from "react";
 import { zeroAddress } from "viem";
 import { ActivityFeed } from "../ActivityFeed";
 import { DistributeReservedTokensButton } from "../DistributeReservedTokensButton";
@@ -16,11 +15,25 @@ import { PayCard } from "../PayCard/PayCard";
 import { Header } from "./Header/Header";
 import { DescriptionSection } from "./sections/DescriptionSection/DescriptionSection";
 import { HoldersSection } from "./sections/HoldersSection/HoldersSection";
+import { useEffect, useState } from "react";
+import sdk from "@farcaster/frame-sdk";
 
-export function NetworkDashboard() {
+  export function NetworkDashboard() {
   const { contracts, projectId } = useJBContractContext();
   const { token } = useJBTokenContext();
   const { metadata } = useJBProjectMetadataContext();
+  const [isLoadingIpfs, setIsLoadingIpfs] = useState<boolean>(false);
+  const [isSDKLoaded, setIsSDKLoaded] = useState(false);
+
+  useEffect(() => {
+    const load = async () => {
+      sdk.actions.ready();
+    };
+    if (sdk && !isSDKLoaded) {
+      setIsSDKLoaded(true);
+      load();
+    }
+  }, [isSDKLoaded]);
 
   // set title
   // TODO, hacky, probably eventually a next-idiomatic way to do this.

@@ -4,6 +4,7 @@ import { ChainPayment } from "../types";
 
 export function usePayRelayr() {
   const chainId = useChainId();
+  console.log("uspayreplyer ", chainId);
   const { switchChainAsync } = useSwitchChain();
   const { sendTransactionAsync } = useSendTransaction();
 
@@ -11,6 +12,7 @@ export function usePayRelayr() {
     try {
       if (chainId !== chainPayment.chain) {
         try {
+          console.log("switching chain", chainPayment.chain);
           await switchChainAsync({ chainId: chainPayment.chain });
         } catch (e) {
           console.error(e);

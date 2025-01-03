@@ -2,7 +2,6 @@
 
 import { Formik } from "formik";
 import { useChain } from "juice-sdk-react";
-import { useState } from "react";
 import { revDeployerAbi, revDeployerAddress } from "revnet-sdk";
 import { encodeFunctionData } from "viem";
 import { RevnetFormData } from "./types";
@@ -13,11 +12,25 @@ import { DeployRevnetForm } from "./form/DeployRevnetForm";
 import { parseDeployData } from "./helpers/parseDeployData";
 import { pinProjectMetadata } from "./helpers/pinProjectMetaData";
 import { parseSuckerDeployerConfig } from "./helpers/parseSuckerDeployerConfig";
+import { useEffect, useState } from "react";
+import sdk from "@farcaster/frame-sdk";
 
 export default function Page() {
   const [isLoadingIpfs, setIsLoadingIpfs] = useState<boolean>(false);
+  const [isSDKLoaded, setIsSDKLoaded] = useState(false);
+
+  useEffect(() => {
+    const load = async () => {
+      sdk.actions.ready();
+    };
+    if (sdk && !isSDKLoaded) {
+      setIsSDKLoaded(true);
+      load();
+    }
+  }, [isSDKLoaded]);
 
   const chain = useChain();
+  console.log("yo yo ", chain);
   const {
     write,
     response,

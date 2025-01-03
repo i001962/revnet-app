@@ -113,7 +113,7 @@ export function PayDialog({
       <DialogTrigger asChild>
         <Button
           disabled={disabled}
-          className="w-full bg-teal-500 hover:bg-teal-600"
+          className="w-full bg-deepPink hover:bg-deepPink rounded-md"
         >
           Pay
         </Button>
@@ -150,7 +150,7 @@ export function PayDialog({
             <div className="flex flex-row justify-between items-end">
               {suckers?.length > 1 ? (
                 <div className="flex flex-col mt-4">
-                  <div className="text-sm text-zinc-500">
+                  <div className="text-sm text-lightPurple">
                     {amountB.symbol} is available on:
                   </div>
                   <Select
@@ -180,7 +180,7 @@ export function PayDialog({
               ) : (
                 selectedSucker && (
                   <div className="flex flex-col mt-4">
-                    <div className="text-xs text-slate-500">{amountB.symbol} is only on:</div>
+                    <div className="text-xs text-fontRed">{amountB.symbol} is only on:</div>
                     <div className=" flex flex-row items-center gap-2 pl-3 min-w-fit pr-5 py-2 border rounded-sm ring-offset-white">
                       <ChainLogo chainId={selectedSucker.peerChainId} />
                       {chainNames[selectedSucker.peerChainId]}

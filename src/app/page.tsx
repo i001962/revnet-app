@@ -8,7 +8,7 @@ export default function Page() {
     <div className="container mt-40">
       <div className="flex flex-col items-left justify-left">
         <Image
-          src="/assets/img/revnet-full-bw.svg"
+          src="/assets/img/revnet-full.png"
           width={840}
           height={240}
           alt="Revnet logo"
@@ -60,21 +60,21 @@ export default function Page() {
           </Link>.
         </p>
         <div className="flex">
-          <div className="mt-8 bg-white text-black text-lg">
+          <div className="mt-8 bg-darkPurple text-fontRed text-lg">
           Plan your revnet with the community <Link href="https://discord.gg/vhVxwh8aD9" className="underline hover:text-black/70">on Discord.
             </Link>
           </div>
         </div>
         <div className="flex">
-          <div className="bg-white text-black text-lg">
-Audit this website and the revnet protocol <Link href="https://github.com/orgs/rev-net/repositories" className="underline hover:text-black/70">
+          <div className="mt-8 bg-darkPurple text-fontRed text-lg">
+        Audit this website and the revnet protocol <Link href="https://github.com/orgs/rev-net/repositories" className="underline hover:text-black/70">
                on Github.
             </Link>
           </div>
         </div>
         <div className="flex mb-40">
-          <div className="bg-white text-black text-lg">
-    Support the $REV network <Link href="https://revnet.app/sepolia/3" className="underline hover:text-black/70">
+          <div className="mt-8 bg-darkPurple text-fontRed text-lg">
+        Support the $REV network <Link href="https://revnet.app/sepolia/3" className="underline hover:text-black/70">
                here,
             </Link>{" "}we run as a revnet ourselves.
           </div>

@@ -33,24 +33,24 @@ export function YouSection({ totalSupply }: { totalSupply: bigint }) {
     <div className="grid grid-cols-1 gap-x-8 overflow-x-scrolltext-md gap-1">
       {/* Left Column */}
       <div className="sm:col-span-1 sm:px-0 grid grid-cols-2 sm:grid-cols-4">
-        <dt className="text-md font-medium leading-6 text-zinc-900">Balance</dt>
-        <dd className="text-zinc-600">
+        <dt className="text-md font-medium leading-6 text-lightPurple">Balance</dt>
+        <dd className="text-lightPurple">
           <UserTokenBalanceDatum />
         </dd>
       </div>
       <div className="sm:col-span-1 sm:px-0 grid grid-cols-2 sm:grid-cols-4">
-        <dt className="text-md font-medium leading-6 text-zinc-900">
+        <dt className="text-md font-medium leading-6 text-lightPurple">
           Ownership
         </dt>
-        <dd className="text-zinc-600">
+        <dd className="text-lightPurple">
           {formatPortion(totalBalance, totalSupply)}%
         </dd>
       </div>
       <div className="sm:col-span-1 sm:px-0 grid grid-cols-2 sm:grid-cols-4">
-        <dt className="text-md font-medium leading-6 text-zinc-900">
+        <dt className="text-md font-medium leading-6 text-lightPurple">
           Current cash out value
         </dt>
-        <dd className="text-zinc-600">
+        <dd className="text-lightPurple">
           <Tooltip>
             <TooltipTrigger>
               {!loading && ethPrice
@@ -69,10 +69,10 @@ export function YouSection({ totalSupply }: { totalSupply: bigint }) {
         </dd>
       </div>
       <div className="sm:col-span-1 sm:px-0 grid grid-cols-2 sm:grid-cols-4">
-        <dt className="text-md font-medium leading-6 text-zinc-900">
-          Current loan potential
+        <dt className="text-md font-medium leading-6 text-lightPurple">
+          Loan potential
         </dt>
-        <dd className="text-zinc-600">$100.50</dd>
+        <dd className="text-lightPurple"> soon</dd>
       </div>
     </div>
   );

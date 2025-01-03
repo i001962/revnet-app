@@ -33,17 +33,15 @@ export function DeployRevnetForm({
     values.tokenSymbol?.length > 0 ? `$${values.tokenSymbol}` : "token";
 
   return (
-    <div className="grid md:grid-cols-3 max-w-6xl mx-auto my-20 gap-x-6 gap-y-6 md:gap-y-0 md:px-0 px-5">
+    <div className=" max-w-6xl mx-auto my-20 gap-x-6 gap-y-6 md:gap-y-0 md:px-0 px-5">
       <DetailsPage disabled={validBundle} />
-      <Divider />
 
       <Stages disabled={validBundle} />
-      <Divider />
 
       <ChainSelect disabled={validBundle} />
 
       {/* Quote and Depoly */}
-      <div className="md:col-start-2 md:col-span-2 -mt-20">
+      <div className="mt-20">
         <QuoteButton
           isLoading={isLoading}
           validBundle={validBundle}
@@ -52,7 +50,7 @@ export function DeployRevnetForm({
         />
         {relayrResponse && (
           <div className="flex flex-col items-start">
-            <div className="text-xs italic mt-2">
+            <div className="text-xs italic mt-2 text-fontRed">
               Quote valid until{" "}
               {format(
                 relayrResponse.payment_info[0].payment_deadline,

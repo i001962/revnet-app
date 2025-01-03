@@ -24,7 +24,8 @@ const simplonMono = localFont({
 });
 
 export const metadata = {
-  title: "REVNET",
+  title: "Farcaster Frames v2 REVNET",
+  description: "A Farcaster Frames v2 demo app",
 };
 
 export default function RootLayout({
@@ -38,7 +39,7 @@ export default function RootLayout({
         className={twMerge(
           simplonNorm.variable,
           simplonMono.variable,
-          "bg-zinc-25 text-zinc-950 font-sans min-h-screen tracking-[0.015em]"
+          "bg-darkPurple text-teal-500 font-sans min-h-screen tracking-[0.015em]"
         )}
       >
         <Providers>

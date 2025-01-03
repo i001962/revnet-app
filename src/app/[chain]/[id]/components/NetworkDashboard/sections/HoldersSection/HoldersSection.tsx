@@ -82,7 +82,7 @@ export function HoldersSection() {
       <Button
         variant={participantsView === view ? "tab-selected" : "bottomline"}
         className={twJoin(
-          "text-md text-zinc-400",
+          "text-md text-lightPurple",
           participantsView === view && "text-inherit"
         )}
         onClick={() => setParticipantsView(view)}
@@ -106,7 +106,7 @@ export function HoldersSection() {
       <button
         type="button"
         onClick={toggleDropdown}
-        className="flex items-center gap-2 text-left text-black-600"
+        className="flex items-center gap-2 text-left text-notWhite"
       >
         <div className="flex flex-row space-x-2">
           <h2 className="text-2xl font-semibold">Owners</h2>
@@ -122,7 +122,7 @@ export function HoldersSection() {
 
       {/* Dropdown Content */}
       {isOpen &&
-        <div className="mt-2 text-gray-600 text-md">
+        <div className="mt-2 text-lightPurple text-md">
           <div className="mb-2">
             {/* View Tabs */}
             <div className="flex flex-row space-x-4 mb-3">
@@ -139,11 +139,11 @@ export function HoldersSection() {
             {/* All Section */}
             <div className={participantsView === "all" ? "" : "hidden"}>
               <div className="space-y-4 p-2 pb-0 sm:pb-2">
-                <p className="text-md text-black font-light italic">
+                <p className="text-md text-lightPurple font-light italic">
                   {formatTokenSymbol(token)} owners are accounts who either paid in, received splits, received auto issuance, or got them aftermarket.
                 </p>
               </div>
-              <div className="flex sm:flex-row flex-col max-h-140 sm:items-start items-center sm:border-t border-zinc-200">
+              <div className="flex sm:flex-row flex-col max-h-140 sm:items-start items-center sm:border-t border-limeGreenOpacity">
                 <div className="w-1/3">
                   <ParticipantsPieChart
                     participants={Object.values(participantsDataAggregate)}
@@ -151,7 +151,7 @@ export function HoldersSection() {
                     token={token?.data}
                   />
                 </div>
-                <div className="overflow-auto p-2 bg-zinc-50 rounded-tl-none border-zinc-200 sm:border-t-[0px] border w-full">
+                <div className="overflow-auto p-2 bg-purplePanel rounded-tl-none border-limeGreenOpacity sm:border-t-[0px] border w-full">
                   <div>
                     <ParticipantsTable
                       participants={Object.values(participantsDataAggregate)}

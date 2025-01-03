@@ -22,7 +22,7 @@ export function Creation() {
       <EtherscanLink
         value={txHash}
         type="tx"
-        className="text-zinc-500 text-sm"
+        className="text-lightPurple text-sm"
       >
           Since {format(timestamp * 1000, "MMM dd, yyyy")}
       </EtherscanLink>

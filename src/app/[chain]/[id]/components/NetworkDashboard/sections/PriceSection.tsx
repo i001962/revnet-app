@@ -78,7 +78,7 @@ export function PriceSection({ className }: { className?: string }) {
         ) : null}
         <ul className="list-disc list-inside mt-2 space-y-2">
           <li className="flex">
-            <div className="flex flex-col border-l border-zinc-300 pl-2">
+            <div className="flex flex-col border-l border-lightPurple pl-2">
               <div className="text-md">
                 Current {formatTokenSymbol(token)} cash out value of{" "}
                 {!cashOutLoading

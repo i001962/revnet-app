@@ -60,17 +60,17 @@ function PayActivityItem(
   });
 
   return (
-    <div className="border-b border-zinc-200 pb-2 mb-1">
+    <div className="border-b border-lightPurple pb-2 mb-1">
       <div className="flex items-center justify-between">
-        <div className="text-md text-zinc-500 mb-2">
+        <div className="text-md text-lightPurple mb-2">
           <EtherscanLink type="tx" value={payEvent.txHash} chain={chain}>
             {formattedDate}
           </EtherscanLink>
         </div>
         <div className="flex items-center gap-1">
-          <div className="text-md text-zinc-500 ml-7">
+          <div className="text-md text-lightPurple ml-7">
             {activityItemData.amount.format(6)} ETH{" "}
-            <span className="border border-teal-600 bg-teal-50 text-teal-600 px-1 py-0.5">
+            <span className="border border-limeGreenOpacity bg-transparent text-limeGreen px-1 py-0.5">
               in
             </span>{" "}
             on{" "}
@@ -78,7 +78,7 @@ function PayActivityItem(
           <ChainLogo chainId={payEvent.chainId} width={15} height={15} />
         </div>
       </div>
-      <div className="flex items-center gap-1 text-md flex-wrap">
+      <div className="flex text-fontRed items-center gap-1 text-md flex-wrap">
         <EthereumAddress
           address={activityItemData.beneficiary}
           withEnsName
@@ -93,7 +93,7 @@ function PayActivityItem(
           </span>
         </div>
       </div>
-      <div className="text-lg text-black-500 font-medium ml-7 pb-4">
+      <div className="text-lg text-lightPurple font-medium ml-7 pb-4">
         {activityItemData.memo}
       </div>
     </div>
@@ -194,7 +194,7 @@ export function ActivityFeed() {
       <button
         type="button"
         onClick={toggleDropdown}
-        className="flex items-center gap-2 text-left text-black-600"
+        className="flex items-center gap-2 text-left text-notWhite"
       >
         <div className="flex flex-row space-x-2">
           <h2 className="text-2xl font-semibold">Activity</h2>

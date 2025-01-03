@@ -20,7 +20,7 @@ export function DescriptionSection() {
       <button
         type="button"
         onClick={toggleDropdown}
-        className="flex items-center gap-2 text-left text-black-600"
+        className="flex items-center gap-2 text-left text-notWhite"
       >
         <div className="flex flex-row space-x-2">
           <h2 className="text-2xl font-semibold">About</h2>
@@ -35,7 +35,7 @@ export function DescriptionSection() {
       </button>
       {/* Dropdown Content */}
       {isOpen &&
-        <div className="mt-2 text-gray-600 text-sm">
+        <div className="mt-2 text-lightPurple text-sm">
           <div className="mb-2">
             {description
               ? description.split("\n").map((d, idx) => (

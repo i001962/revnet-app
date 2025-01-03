@@ -38,27 +38,26 @@ export function ChainSelect({
   return (
     <>
       <div className="md:col-span-1">
-        <h2 className="font-bold text-lg mb-2">3. Deploy</h2>
-        <p className="text-zinc-600 text-lg">
+        <h2 className="font-bold text-notWhite text-lg mb-2 mt-4">3. Select chains</h2>
+        <p className="text-lightPurple">
           Pick which chains your revnet will accept money on and issue{" "}
           {revnetTokenSymbol} from.
         </p>
-        <p className="text-zinc-600 text-lg mt-2">
-          Holder of {revnetTokenSymbol} can cash out on any of the selected
+        <p className="text-lightPurple mt-2">
+          Holders of {revnetTokenSymbol} can cash out on any of the selected
           chains, and can move their {revnetTokenSymbol} between chains at any
           time.
         </p>
-        <p className="text-zinc-600 text-lg mt-2">
+        <p className="text-lightPurple mt-2">
           The Operator you set in your revnet's rules will also be able to add
           new chains to the revnet later.
         </p>
       </div>
       <div className="md:col-span-2">
-        <div className="flex flex-col gap-4">
-          <div className="text-left text-black-500 mb-4 font-semibold">
-            Choose your chains
+        <div className="flex flex-col">
+          <div className="text-left mt-4 text-notWhite font-semibold">
           </div>
-          <div className="max-w-56">
+          <div className="max-w-56 text-lighPurple">
             <Select
               onValueChange={(v) => {
                 setEnvironment(v);
@@ -66,7 +65,7 @@ export function ChainSelect({
               defaultValue="testing"
               disabled={disabled}
             >
-              <SelectTrigger className="col-span-1">
+              <SelectTrigger className="col-span-1 bg-deepPink text-lightPurple">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -85,13 +84,13 @@ export function ChainSelect({
             ) : (
               <>
                 {Object.entries(chainNames).map(([id, name]) => (
-                  <label key={id} className="flex items-center gap-2">
+                  <label key={id} className="flex items-center gap-2 text-lightPurple">
                     <FormikField
                       type="checkbox"
                       name="chainIds"
                       value={id}
                       disabled={disabled}
-                      className="disabled:opacity-50"
+                      className="disabled:opacity-50 bg-white"
                       checked={values.chainIds.includes(Number(id) as JBChainId)}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         handleChainSelect(Number(id), e.target.checked);

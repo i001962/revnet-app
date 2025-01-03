@@ -91,7 +91,7 @@ export function AddStageDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg bg-zinc-100">
         <DialogHeader>
           <DialogTitle>Add stage</DialogTitle>
         </DialogHeader>
@@ -129,7 +129,7 @@ export function AddStageDialog({
                         name="priceCeilingIncreasePercentage"
                         type="number"
                         min="0"
-                        className="h-9"
+                        className="h-9 text-limeGreenOpacity"
                         suffix="%"
                         required
                       />
@@ -139,7 +139,7 @@ export function AddStageDialog({
                       <Field
                         id="priceCeilingIncreaseFrequency"
                         name="priceCeilingIncreaseFrequency"
-                        className="h-9"
+                        className="h-9 text-teal-500"
                         type="number"
                         min="0"
                         required
@@ -193,7 +193,7 @@ export function AddStageDialog({
                     <Field
                       id="initialOperator"
                       name="initialOperator"
-                      className=""
+                      className="text-teal-500 bg-zinc-100 h-9"
                       placeholder={
                         stageIdx > 0 ? values.stages[0].initialOperator : "0x"
                       }

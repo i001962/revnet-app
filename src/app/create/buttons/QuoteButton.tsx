@@ -54,7 +54,7 @@ export function QuoteButton({
       size="lg"
       disabled={disableQuoteButton || isLoading}
       className={twMerge(
-        "text-color-black bg-transparent border border-black hover:bg-zinc-100 disabled:bg-gray-100 w-[220px]",
+        "text-lightPurple text-sm bg-deepPink rounded-md hover:bg-deepPink disabled:text-black disabled:bg-gray-100 w-[220px]",
         buttonContent.className
       )}
       onClick={onSubmit}

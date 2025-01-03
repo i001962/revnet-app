@@ -42,7 +42,7 @@ export function PayAndDeploy({
 
   return (
     <div>
-      <div className="text-left text-black-500 font-semibold">
+      <div className="text-left text-notWhite font-semibold">
         How would you like to pay?
       </div>
       <div className="max-w-sm">
@@ -50,7 +50,7 @@ export function PayAndDeploy({
           onValueChange={(v) => setPaymentIndex(Number(v))}
           defaultValue="0"
         >
-          <SelectTrigger>
+          <SelectTrigger className="bg-deepPink text-lightPurple">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -64,12 +64,12 @@ export function PayAndDeploy({
           </SelectContent>
         </Select>
       </div>
-      <div className="flex md:col-span-3 mt-4">
+      <div className="flex md:col-span-3 mt-4 text-lighPurple">
         <Button
           type="submit"
           size="lg"
           disabled={payIsProcessing}
-          className="disabled:text-black disabled:bg-transparent disabled:border disabled:border-black disabled:bg-gray-100 bg-teal-500 hover:bg-teal-600"
+          className="disabled:text-black disabled:bg-transparent disabled:border disabled:border-black disabled:bg-gray-100 bg-deepPink hover:bg-deepPink"
           onClick={async () => {
             setPayIsProcessing(true);
             try {
@@ -101,15 +101,15 @@ export function PayAndDeploy({
       </div>
       {!!bundleResponse && (
         <div className="mt-10 flex flex-col space-y-2">
-          <div className="text-left text-zinc-500 mb-2">Your revnet is made up of components deployed on each blockchain where it'll accept funds and issue {revnetTokenSymbol} from. These transactions take 1-2 minutes to settle.</div>
-          <div className="grid grid-cols-3 gap-4 font-semibold border-b mb-2">
+          <div className="text-left text-zinc-500 mb-2 text-lightPurple">Your revnet is made up of components deployed on each blockchain where it'll accept funds and issue {revnetTokenSymbol} from. These transactions take 1-2 minutes to settle.</div>
+          <div className="grid grid-cols-3 gap-4 font-semibold border-b mb-2 text-notWhite">
             <div>Network</div>
             <div>Status</div>
             <div>Transaction</div>
           </div>
           {bundleResponse.transactions.map((txn) => (
             txn?.status && (
-              <div key={txn?.tx_uuid} className="grid grid-cols-3 gap-4">
+              <div key={txn?.tx_uuid} className="grid grid-cols-3 gap-4 text-lightPurple">
                 <div>{chainNames[txn.request.chain as JBChainId]}</div>
                 <div className="flex flex-row space-x-2 items-center justify-start">
                   <div>{statusToIcon(txn.status.state)}</div>
