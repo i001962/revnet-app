@@ -190,9 +190,7 @@ export function PayDialog({
               ) : (
                 selectedSucker && (
                   <div className="flex flex-col mt-4">
-                    <div className="text-xs text-slate-500">
-                      {amountB.symbol} is only on:
-                    </div>
+                    <div className="text-xs text-fontRed">{amountB.symbol} is only on:</div>
                     <div className=" flex flex-row items-center gap-2 pl-3 min-w-fit pr-5 py-2 border rounded-sm ring-offset-white">
                       <ChainLogo
                         chainId={selectedSucker.peerChainId as JBChainId}
