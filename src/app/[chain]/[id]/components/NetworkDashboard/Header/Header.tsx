@@ -85,8 +85,7 @@ export function Header() {
               <h1 className="text-2xl font-medium">
                 {projectName}
               </h1>
-              {(suckerPairs.data?.suckers as SuckerPair[])?.map((pair) => {
-                console.log({ pair });
+              {suckers?.map((pair) => {
                 if (!pair) return null;
 
                 const networkSlug =
