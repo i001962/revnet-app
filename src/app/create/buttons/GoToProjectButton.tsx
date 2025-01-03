@@ -4,8 +4,8 @@ import { JBChainId } from "juice-sdk-react";
 import { FastForwardIcon } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { sepolia } from "viem/chains";
-import { useTransactionReceipt } from "wagmi";
+import sdk from "@farcaster/frame-sdk";
+import { useEffect } from "react";
 
 export function GoToProjectButton({
   txHash,

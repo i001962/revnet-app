@@ -166,6 +166,7 @@ export function NetworkDetailsTable() {
         type="button"
         onClick={toggleDropdown}
         className="flex items-center gap-2 text-left text-notWhite"
+        className="flex items-center gap-2 text-left text-notWhite"
       >
         <div className="flex flex-row space-x-2">
           <h2 className="text-2xl font-semibold">How it works</h2>
@@ -182,9 +183,11 @@ export function NetworkDetailsTable() {
       {isOpen &&
         <div className="mt-2 text-lightPurple text-md max-w-sm sm:max-w-full">
           <h3 className="text-md text-notWhite font-semibold mt-4">Overview</h3>
+        <div className="mt-2 text-lightPurple text-md max-w-sm sm:max-w-full">
+          <h3 className="text-md text-notWhite font-semibold mt-4">Overview</h3>
           <PriceSection className="mb-2" />
-          <h3 className="text-md font-semibold mt-6">Rules</h3>
-          <div className="mb-2 mt-2 text-black font-light italic">{formatTokenSymbol(token)}'s issuance and cash out rules change automatically in permanent sequential stages.</div>
+          <h3 className="text-md text-notWhite font-semibold mt-6">Rules</h3>
+          <div className="mb-2 mt-2 text-lightPurple font-light italic">{formatTokenSymbol(token)}'s issuance and cash out rules change automatically in permanent sequential stages.</div>
           <div className="mb-2">
 
             <div className="flex gap-4 mb-2">
@@ -194,6 +197,7 @@ export function NetworkDetailsTable() {
                     variant={selectedStageIdx === idx ? "tab-selected" : "bottomline"}
                     className={twJoin(
                       "text-md text-lightPurple",
+                      "text-md text-lightPurple",
                       selectedStageIdx === idx && "text-inherit"
                     )}
                     key={ruleset.id.toString() + idx}
@@ -202,11 +206,13 @@ export function NetworkDetailsTable() {
               Stage {idx + 1}
                     {idx === currentStageIdx && (
                       <span className="rounded-full h-2 w-2 bg-notWhite border-[2px] border-orange-200 ml-1"></span>
+                      <span className="rounded-full h-2 w-2 bg-notWhite border-[2px] border-orange-200 ml-1"></span>
                     )}
                   </Button>
                 );
               })}
             </div>
+            <div className="text-md text-lightPurple mb-2">
             <div className="text-md text-lightPurple mb-2">
               {formatDate(
                 new Date(Number(selectedStage.start) * 1000),
@@ -215,6 +221,7 @@ export function NetworkDetailsTable() {
             </div>
             <div className="grid sm:grid-cols-1 gap-x-8 overflow-x-scroll gap-1">
               <div className="sm:col-span-1 sm:px-0 grid grid-cols-2 sm:grid-cols-4">
+                <dt className="text-md font-medium leading-6 text-lightPurple">
                 <dt className="text-md font-medium leading-6 text-lightPurple">
                   <Tooltip>
                     <div className="flex flex-row space-x-1">
@@ -247,11 +254,13 @@ export function NetworkDetailsTable() {
                   </Tooltip>
                 </dt>
                 <dd className="text-md leading-6 text-lightPurple whitespace-nowrap">
+                <dd className="text-md leading-6 text-lightPurple whitespace-nowrap">
                   {issuance}, cut {selectedStage.weightCutPercent.formatPercentage()}% every{" "}
                   {(selectedStage.duration / 86400).toString()} days
                 </dd>
               </div>
               <div className="sm:col-span-1 sm:px-0 grid grid-cols-2 sm:grid-cols-4">
+                <dt className="text-md font-medium leading-6 text-lightPurple">
                 <dt className="text-md font-medium leading-6 text-lightPurple">
                   <Tooltip>
                     <div className="flex flex-row space-x-1">
@@ -269,15 +278,12 @@ export function NetworkDetailsTable() {
                     </div>
                   </Tooltip>
                 </dt>
-<<<<<<< HEAD
                 <dd className="text-md leading-6 text-lightPurple whitespace-nowrap">
-=======
-                <dd className="text-md leading-6 text-zinc-700 whitespace-nowrap">
->>>>>>> 9acf630 (fix(automints): fix up automints, refine homepage to open links in same window new one got annoying)
-                  {getAutoMintsTotalForStage()} {formatTokenSymbol(token)}
+            0 {formatTokenSymbol(token)}
                 </dd>
               </div>
               <div className="sm:col-span-1 sm:px-0 grid grid-cols-2 sm:grid-cols-4">
+                <dt className="text-md font-medium leading-6 text-lightPurple">
                 <dt className="text-md font-medium leading-6 text-lightPurple">
                   <Tooltip>
                     <div className="flex flex-row space-x-1">
@@ -329,7 +335,9 @@ export function NetworkDetailsTable() {
                   </Tooltip>
                 </dt>
                 <dd className="text-md leading-6 text-lightPurple whitespace-nowrap">
+                <dd className="text-md leading-6 text-lightPurple whitespace-nowrap">
                   {selectedStageBoost ? (
+                    <div className="text-md leading-6 text-lightPurple">
                     <div className="text-md leading-6 text-lightPurple">
                       {reservedPercent?.formatPercentage()}% split to <Badge variant="secondary" className="border border-visible">
                         <ForwardIcon className="w-4 h-4 mr-1 inline-block" />
@@ -340,6 +348,7 @@ export function NetworkDetailsTable() {
                 </dd>
               </div>
               <div className="sm:col-span-1 sm:px-0 grid grid-cols-2 sm:grid-cols-4">
+                <dt className="text-md font-medium leading-6 text-lightPurple">
                 <dt className="text-md font-medium leading-6 text-lightPurple">
                   <Tooltip>
                     <div className="flex flex-row space-x-1">
@@ -384,6 +393,7 @@ export function NetworkDetailsTable() {
                     </div>
                   </Tooltip>
                 </dt>
+                <dd className="text-md leading-6 text-lightPurple">
                 <dd className="text-md leading-6 text-lightPurple">
                   {new CashOutTaxRate(
                     Number(selectedStageMetadata?.data?.cashOutTaxRate.value ?? 0n)

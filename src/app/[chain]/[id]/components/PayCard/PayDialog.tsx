@@ -228,6 +228,7 @@ export function PayDialog({
               ) : (
                 selectedSucker && (
                   <div className="flex flex-col mt-4">
+                    <div className="text-xs text-fontRed">{amountB.symbol} is only on:</div>
                     <div className="text-xs text-slate-500">
                       {amountB.symbol} is only on:
                     </div>

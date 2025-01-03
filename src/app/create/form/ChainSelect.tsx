@@ -75,17 +75,15 @@ export function ChainSelect({ disabled = false }: { disabled?: boolean }) {
               <p>...</p> //TODO with production chainnames
             ) : (
               <>
-                {Object.values(JB_CHAINS).map(({ chain, name }) => (
-                  <label key={chain.id} className="flex items-center gap-2">
+                {Object.entries(chainNames).map(([id, name]) => (
+                  <label key={id} className="flex items-center gap-2 text-lightPurple">
                     <FormikField
                       type="checkbox"
                       name="chainIds"
                       value={chain.id}
                       disabled={disabled}
-                      className="disabled:opacity-50"
-                      checked={values.chainIds.includes(
-                        Number(chain.id) as JBChainId
-                      )}
+                      className="disabled:opacity-50 bg-white"
+                      checked={values.chainIds.includes(Number(id) as JBChainId)}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         handleChainSelect(Number(chain.id), e.target.checked);
                       }}

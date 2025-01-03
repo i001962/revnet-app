@@ -121,41 +121,36 @@ export function PayAndDeploy({
       </div>
       {!!bundleResponse && (
         <div className="mt-10 flex flex-col space-y-2">
-          <div className="text-left text-zinc-500 mb-2">
-            Your revnet is made up of components deployed on each blockchain
-            where it'll accept funds and issue {revnetTokenSymbol} from. These
-            transactions take 1-2 minutes to settle.
-          </div>
-          <div className="grid grid-cols-3 gap-4 font-semibold border-b mb-2">
+          <div className="text-left text-zinc-500 mb-2 text-lightPurple">Your revnet is made up of components deployed on each blockchain where it'll accept funds and issue {revnetTokenSymbol} from. These transactions take 1-2 minutes to settle.</div>
+          <div className="grid grid-cols-3 gap-4 font-semibold border-b mb-2 text-notWhite">
             <div>Network</div>
             <div>Status</div>
             <div>Transaction</div>
           </div>
-          {bundleResponse.transactions.map(
-            (txn) =>
-              txn?.status && (
-                <div key={txn?.tx_uuid} className="grid grid-cols-3 gap-4">
-                  <div>{JB_CHAINS[txn.request.chain as JBChainId].name}</div>
-                  <div className="flex flex-row space-x-2 items-center justify-start">
-                    <div>{statusToIcon(txn.status.state)}</div>
-                    <div>{txn.status.state}</div>
-                  </div>
-                  {txn?.status?.data?.hash ? (
-                    <div className="flex flex-row space-x-1 items-center">
-                      <EtherscanLink
-                        value={txn?.status?.data?.hash}
-                        type="tx"
-                        chain={JB_CHAINS[txn.request.chain as JBChainId].chain}
-                        truncateTo={6}
-                      />
-                      <SquareArrowOutUpRightIcon className="w-3 h-3" />
-                    </div>
-                  ) : (
-                    <div className="animate-pulse italic">generating...</div>
-                  )}
+          {bundleResponse.transactions.map((txn) => (
+            txn?.status && (
+              <div key={txn?.tx_uuid} className="grid grid-cols-3 gap-4 text-lightPurple">
+                <div>{chainNames[txn.request.chain as JBChainId]}</div>
+                <div className="flex flex-row space-x-2 items-center justify-start">
+                  <div>{statusToIcon(txn.status.state)}</div>
+                  <div>{txn.status.state}</div>
                 </div>
-              )
-          )}
+                {txn?.status?.data?.hash ? (
+                  <div className="flex flex-row space-x-1 items-center">
+                    <EtherscanLink
+                      value={txn?.status?.data?.hash}
+                      type="tx"
+                      chain={ChainIdToChain[txn.request.chain as JBChainId]}
+                      truncateTo={6}
+                    />
+                    <SquareArrowOutUpRightIcon className="w-3 h-3" />
+                  </div>
+                ) : (
+                  <div className="animate-pulse italic">generating...</div>
+                )}
+              </div>
+            )
+          ))}
           <GoToProjectButton
             txHash={bundleResponse.transactions[0].status?.data?.hash}
             chainId={bundleResponse.transactions[0].request.chain as JBChainId}
