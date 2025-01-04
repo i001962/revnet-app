@@ -6,8 +6,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useBoostRecipient } from "@/hooks/useBoostRecipient";
-import { useSuckersTokenCashOutValue } from "@/hooks/useSuckersTokenCashOutValue";
-import { useEtherPrice } from "@/hooks/useEtherPrice";
+// import { useSuckersTokenCashOutValue } from "@/hooks/useSuckersTokenCashOutValue";
+// import { useEtherPrice } from "@/hooks/useEtherPrice";
 import { useFormattedTokenIssuance } from "@/hooks/useFormattedTokenIssuance";
 import { formatTokenSymbol } from "@/lib/utils";
 import { ForwardIcon } from "@heroicons/react/24/solid";

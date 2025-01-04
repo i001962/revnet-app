@@ -22,6 +22,7 @@ import { useBoostRecipient } from "@/hooks/useBoostRecipient";
 import { formatTokenSymbol } from "@/lib/utils";
 import { ForwardIcon } from "@heroicons/react/24/solid";
 import {
+  JB_CHAINS,
   SuckerPair,
   formatUnits,
   jbProjectDeploymentAddresses,
@@ -47,37 +48,26 @@ export function SplitsSection() {
   const boostRecipient = useBoostRecipient();
   const [selectedSucker, setSelectedSucker] = useState<SuckerPair>();
   const suckersQuery = useSuckers();
-  const suckers = (suckersQuery.data as { suckers: SuckerPair[] | null })
-    ?.suckers;
+  const suckers = suckersQuery.data?.suckers;
   const { data: reservedTokenSplits, isLoading } = useReadJbSplitsSplitsOf({
-    chainId: selectedSucker?.peerChainId as JBChainId | undefined,
-    args:
-      ruleset && ruleset?.data
-        ? [projectId, BigInt(ruleset.data.id), RESERVED_TOKEN_SPLIT_GROUP_ID]
-        : undefined,
+    chainId: selectedSucker?.peerChainId,
+    args: ruleset && ruleset?.data ? [projectId, BigInt(ruleset.data.id), RESERVED_TOKEN_SPLIT_GROUP_ID] : undefined,
   });
-  const { data: pendingReserveTokenBalance } =
-    useReadJbControllerPendingReservedTokenBalanceOf({
-      chainId: selectedSucker?.peerChainId,
-      address: selectedSucker?.peerChainId
-        ? (jbProjectDeploymentAddresses.JBController[
-            selectedSucker.peerChainId as JBChainId
-          ] as Address)
-            selectedSucker.peerChainId as JBChainId
-          ] as Address)
-        : undefined,
-      args: ruleset && ruleset?.data ? [projectId] : undefined,
-    });
-  console.log("reserveToken", pendingReserveTokenBalance);
+
+  const { data: pendingReserveTokenBalance } = useReadJbControllerPendingReservedTokenBalanceOf({
+    chainId: selectedSucker?.peerChainId,
+    address: selectedSucker
+      ? jbProjectDeploymentAddresses.JBController[selectedSucker.peerChainId as JBChainId]
+      : undefined,
+    args: ruleset && ruleset?.data ? [projectId] : undefined,
+  });
+
   useEffect(() => {
-    if (chainId && suckers && !suckers.find((s) => s.peerChainId === chainId)) {
-      suckers.push({ projectId, peerChainId: chainId });
+    if (chainId && suckers) {
+      const selected = suckers.find((s) => s.peerChainId === chainId);
+      setSelectedSucker(selected || suckers[0]); // fallback to first item if no match
     }
-    if (suckers && !selectedSucker) {
-      const i = suckers.findIndex((s) => s.peerChainId === chainId);
-      setSelectedSucker(suckers[i]);
-    }
-  }, [suckers, chainId, projectId, selectedSucker]);
+  }, [suckers, chainId]);
 
   return (
     <>
@@ -91,8 +81,7 @@ export function SplitsSection() {
           at any time.
         </p>
       </div>
-      {suckers && suckers.length > 1 && (
-      {suckers && suckers.length > 1 && (
+      {suckers?.length > 1 && (
         <div className="mt-2 mb-4">
           <div className="text-sm text-lighPurple">See splits on</div>
           <Select
@@ -107,7 +96,7 @@ export function SplitsSection() {
               <SelectValue placeholder="Select chain"></SelectValue>
             </SelectTrigger>
             <SelectContent>
-              {suckers?.map((s, index) => (
+              {suckers.map((s, index) => (
                 <SelectItem
                   key={s.peerChainId}
                   value={String(index)}
@@ -130,13 +119,13 @@ export function SplitsSection() {
         </Badge>{" "}
         is{" "}
         <EtherscanLink
-          value={boostRecipient}
+          value={boostRecipient || ""}
           type="address"
-          chain={chainId ? JB_CHAINS[chainId].chain : undefined}
+          chain={chainId ? JB_CHAINS[chainId]?.chain : undefined}
           truncateTo={6}
         />
       </div>
-      <div className="max-h-96 overflow-auto bg-purplePanel rounded-tr-md rounded-br-md  border-limeGreenOpacity border mb-4">
+      <div className="max-h-96 overflow-auto bg-purplePanel rounded-tr-md rounded-br-md border-limeGreenOpacity border mb-4">
         <div className="flex p-2">
           <Table>
             <TableHeader>
@@ -199,18 +188,12 @@ export function SplitsSection() {
                       </TableCell>
                       <TableCell>
                         {pendingReserveTokenBalance
-                          ? `
-                          ${formatUnits(
-                            (pendingReserveTokenBalance *
-                            (pendingReserveTokenBalance *
-                              BigInt(split.percent)) /
-                              BigInt(10 ** 9),
-                            18
-                          )}
-                            18
-                          )}
-                          ${formatTokenSymbol(token.data?.symbol)}
-                        `
+                          ? `${formatUnits(
+                              (pendingReserveTokenBalance *
+                                BigInt(split.percent)) /
+                                BigInt(10 ** 9),
+                              18
+                            )} ${formatTokenSymbol(token.data?.symbol)}`
                           : "?"}
                       </TableCell>
                     </TableRow>

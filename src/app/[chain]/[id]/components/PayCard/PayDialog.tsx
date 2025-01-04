@@ -1,7 +1,4 @@
-import { chainNames } from "@/app/constants";
-import { chainNames } from "@/app/constants";
 import { ButtonWithWallet } from "@/components/ButtonWithWallet";
-import { ChainLogo } from "@/components/ChainLogo";
 import { ChainLogo } from "@/components/ChainLogo";
 import { TokenAmount } from "@/components/TokenAmount";
 import { Button } from "@/components/ui/button";
@@ -19,22 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Stat } from "@/components/ui/stat";
-import { useToast } from "@/components/ui/use-toast";
-import {
-  JB_CHAINS,
-  JBChainId,
-  NATIVE_TOKEN,
-  SuckerPair,
-  TokenAmountType,
-} from "juice-sdk-core";
 import { useToast } from "@/components/ui/use-toast";
 import {
   JB_CHAINS,
@@ -49,9 +31,6 @@ import {
   useSuckers,
   useWriteJbMultiTerminalPay,
 } from "juice-sdk-react";
-import { useEffect, useState } from "react";
-import { Address } from "viem";
-import { useAccount, useWaitForTransactionReceipt } from "wagmi";
 import { useEffect, useState } from "react";
 import { Address } from "viem";
 import { useAccount, useWaitForTransactionReceipt } from "wagmi";
@@ -82,7 +61,6 @@ export function PayDialog({
     data,
   } = useWriteJbMultiTerminalPay();
   const chainId = useJBChainId();
-  const [selectedSucker, setSelectedSucker] = useState<SuckerPair>();
   const [selectedSucker, setSelectedSucker] = useState<SuckerPair>();
   const txHash = data;
   const { isLoading: isTxLoading, isSuccess } = useWaitForTransactionReceipt({
@@ -179,20 +157,11 @@ export function PayDialog({
           {!isSuccess ? (
             <div className="flex flex-row justify-between items-end">
               {suckers && suckers.length > 1 ? (
-              {suckers && suckers.length > 1 ? (
                 <div className="flex flex-col mt-4">
                   <div className="text-sm text-lightPurple">
                     {amountB.symbol} is available on:
                   </div>
                   <Select
-                    onValueChange={(v) =>
-                      setSelectedSucker(suckers[parseInt(v)])
-                    }
-                    value={
-                      selectedSucker
-                        ? String(suckers.indexOf(selectedSucker))
-                        : undefined
-                    }
                     onValueChange={(v) =>
                       setSelectedSucker(suckers[parseInt(v)])
                     }
@@ -244,9 +213,6 @@ export function PayDialog({
                 )
               )}
               <ButtonWithWallet
-                targetChainId={
-                  selectedSucker?.peerChainId as JBChainId | undefined
-                }
                 targetChainId={
                   selectedSucker?.peerChainId as JBChainId | undefined
                 }

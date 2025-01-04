@@ -4,7 +4,7 @@ import { ChainLogo } from "@/components/ChainLogo";
 import EtherscanLink from "@/components/EtherscanLink";
 import { ProjectsDocument } from "@/generated/graphql";
 import { useSubgraphQuery } from "@/graphql/useSubgraphQuery";
-import { useSuckersTokenCashOutValue } from "@/hooks/useSuckersTokenCashOutValue";
+//import { useSuckersTokenCashOutValue } from "@/hooks/useSuckersTokenCashOutValue";
 import { useFormattedTokenIssuance } from "@/hooks/useFormattedTokenIssuance";
 import { ipfsUriToGatewayUrl } from "@/lib/ipfs";
 import { formatTokenSymbol } from "@/lib/utils";

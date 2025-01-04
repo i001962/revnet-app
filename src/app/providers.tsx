@@ -1,6 +1,11 @@
 "use client";
 
+import { wagmiConfig } from "@/lib/wagmiConfig";
+import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ConnectKitProvider } from "connectkit";
 import dynamic from "next/dynamic";
+import React from "react";
 
 const WagmiProvider = dynamic(
   () => import("./WagmiProvider"),
