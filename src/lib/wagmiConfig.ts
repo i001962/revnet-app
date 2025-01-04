@@ -6,6 +6,7 @@ import {
   sepolia,
 } from "viem/chains";
 import { createConfig, http } from "wagmi";
+import { frameConnector } from "./connector";
 
 const defaultConfig = getDefaultConfig({
   chains: [sepolia, optimismSepolia, baseSepolia, arbitrumSepolia],
@@ -25,6 +26,8 @@ const defaultConfig = getDefaultConfig({
       `https://arbitrum-sepolia.infura.io/v3/${process.env.NEXT_PUBLIC_INFURA_ID}`
     ),
   },
+  connectors: [frameConnector()],
+
 });
 
 export const wagmiConfig = createConfig(defaultConfig);
