@@ -12,6 +12,8 @@ import {
   useSuckersUserTokenBalance,
 } from "juice-sdk-react";
 import { UserTokenBalanceDatum } from "../../../UserTokenBalanceCard/UserTokenBalanceDatum";
+import { useSuckersCashOutQuote } from "@/hooks/useSuckersCashOutQuote";
+import { useSuckersUserTokenBalance } from "../../../UserTokenBalanceCard/useSuckersUserTokenBalance";
 
 export function YouSection({ totalSupply }: { totalSupply: bigint }) {
   const balanceQuery = useSuckersUserTokenBalance();
