@@ -1,5 +1,3 @@
-import { chainNames } from "@/app/constants";
-import { chainNames } from "@/app/constants";
 import { ButtonWithWallet } from "@/components/ButtonWithWallet";
 import { ChainLogo } from "@/components/ChainLogo";
 import { ChainLogo } from "@/components/ChainLogo";
@@ -29,6 +27,7 @@ import {
 import { Stat } from "@/components/ui/stat";
 import { useToast } from "@/components/ui/use-toast";
 import {
+  JB_CHAINS,
   JBChainId,
   NATIVE_TOKEN,
   SuckerPair,
@@ -36,6 +35,7 @@ import {
 } from "juice-sdk-core";
 import { useToast } from "@/components/ui/use-toast";
 import {
+  JB_CHAINS,
   JBChainId,
   NATIVE_TOKEN,
   SuckerPair,
@@ -89,8 +89,7 @@ export function PayDialog({
   const { toast } = useToast();
   const loading = isWriteLoading || isTxLoading;
   const suckersQuery = useSuckers();
-  const suckers = (suckersQuery.data as { suckers: SuckerPair[] | null })
-    ?.suckers;
+  const suckers = suckersQuery.data;
 
   useEffect(() => {
     if (isError && error) {
@@ -214,11 +213,11 @@ export function PayDialog({
                           <div className="flex items-center gap-2">
                             <ChainLogo chainId={s.peerChainId as JBChainId} />
                             <span>
-                              {chainNames[s.peerChainId as JBChainId]}
+                              {JB_CHAINS[s.peerChainId as JBChainId].name}
                             </span>
                             <ChainLogo chainId={s.peerChainId as JBChainId} />
                             <span>
-                              {chainNames[s.peerChainId as JBChainId]}
+                              {JB_CHAINS[s.peerChainId as JBChainId].name}
                             </span>
                           </div>
                         </SelectItem>
@@ -236,11 +235,7 @@ export function PayDialog({
                       <ChainLogo
                         chainId={selectedSucker.peerChainId as JBChainId}
                       />
-                      {chainNames[selectedSucker.peerChainId as JBChainId]}
-                      <ChainLogo
-                        chainId={selectedSucker.peerChainId as JBChainId}
-                      />
-                      {chainNames[selectedSucker.peerChainId as JBChainId]}
+                      {JB_CHAINS[selectedSucker.peerChainId as JBChainId].name}
                     </div>
                   </div>
                 )
