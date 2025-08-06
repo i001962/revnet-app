@@ -18,6 +18,8 @@ import { ImportantInfo } from "./ImportantInfo";
 import { useBorrowDialogState } from "./hooks/useBorrowDialogState";
 import { SimulatedLoanCard } from "../SimulatedLoanCard";
 
+import { BorrowState, borrowStatusMessages } from "./constants/borrowStatus";
+
 export function ReallocateDialog({
   projectId,
   tokenSymbol,
@@ -100,7 +102,7 @@ export function ReallocateDialog({
 
   // Close dialog on successful reallocation
   useEffect(() => {
-    if (borrowStatus === "success" && onOpenChange) {
+    if (borrowStatus === BorrowState.Success && onOpenChange) {
       setTimeout(() => {
         onOpenChange(false);
       }, 3000); // Same delay as in useBorrowDialogState
@@ -329,19 +331,9 @@ export function ReallocateDialog({
           {collateralToTransfer > 0 && (
             <DialogFooter className="flex flex-row items-center justify-between w-full gap-4">
               <div className="flex-1 text-left">
-                {borrowStatus !== "idle" && (
+                {borrowStatus !== BorrowState.Idle && (
                   <p className="text-sm text-zinc-600">
-                    {borrowStatus === "checking" && "Checking permissions..."}
-                    {borrowStatus === "granting-permission" && "Granting permission..."}
-                    {borrowStatus === "permission-granted" && "Permission granted. Reallocating loan..."}
-                    {borrowStatus === "approving" && "Approving token allowance..."}
-                    {borrowStatus === "waiting-signature" && "Waiting for wallet confirmation..."}
-                    {borrowStatus === "pending" && "Reallocating loan..."}
-                    {borrowStatus === "reallocation-pending" && "Reallocating loan..."}
-                    {borrowStatus === "success" && "Loan reallocated successfully!"}
-                    {borrowStatus === "error-permission-denied" && "Permission was not granted. Please approve to proceed."}
-                    {borrowStatus === "error-loan-canceled" && "Loan reallocation was canceled."}
-                    {borrowStatus === "error" && "Something went wrong during loan reallocation."}
+                    {borrowStatusMessages[borrowStatus]}
                   </p>
                 )}
               </div>
