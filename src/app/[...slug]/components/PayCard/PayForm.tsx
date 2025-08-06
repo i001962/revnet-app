@@ -44,6 +44,10 @@ export function PayForm() {
     amount: new FixedInt(parseEther(amountB), tokenB.decimals),
     symbol: formatTokenSymbol(token),
   };
+  const _amountC = {
+    amount: new FixedInt(parseEther(amountC || "0"), tokenB.decimals),
+    symbol: formatTokenSymbol(token),
+  };
 
   function resetForm() {
     setAmountA("");
@@ -144,6 +148,7 @@ export function PayForm() {
               key={resetKey}
               amountA={_amountA}
               amountB={_amountB}
+              splitsAmount={_amountC}
               memo={memo}
               paymentToken={(accountingContext?.project?.token as `0x${string}`) || NATIVE_TOKEN}
               disabled={!amountA}

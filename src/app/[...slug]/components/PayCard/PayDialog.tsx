@@ -46,6 +46,7 @@ import { ProjectDocument, SuckerGroupDocument } from "@/generated/graphql";
 export function PayDialog({
   amountA,
   amountB,
+  splitsAmount,
   memo,
   paymentToken,
   disabled,
@@ -53,6 +54,7 @@ export function PayDialog({
 }: {
   amountA: TokenAmountType;
   amountB: TokenAmountType;
+  splitsAmount?: TokenAmountType;
   memo: string | undefined;
   paymentToken: `0x${string}`;
   disabled?: boolean;
@@ -217,6 +219,11 @@ export function PayDialog({
                     <Stat label="Get">
                       <TokenAmount amount={amountB} />
                     </Stat>
+                    {splitsAmount && (
+                      <Stat label="Splits get">
+                        <TokenAmount amount={splitsAmount} />
+                      </Stat>
+                    )}
                     {memo && <Stat label="Memo">{memo}</Stat>}
                   </div>
                   {isTxLoading ? <div>Transaction submitted, awaiting confirmation...</div> : null}
