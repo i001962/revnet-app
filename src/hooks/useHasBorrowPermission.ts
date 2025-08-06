@@ -1,9 +1,7 @@
-import {
-  JBChainId,
-} from "juice-sdk-react";
-import { revLoansAddress } from "revnet-sdk";
+import { JBChainId } from "juice-sdk-react";
 import { HasPermissionDocument } from "@/generated/graphql";
 import { useBendystrawQuery } from "@/graphql/useBendystrawQuery";
+import { useReadRevDeployerLoansOf } from "@/hooks/useReadRevDeployerLoansOf";
 
 export function useHasBorrowPermission({
   address,
@@ -18,7 +16,12 @@ export function useHasBorrowPermission({
   resolvedPermissionsAddress?: `0x${string}`;
   skip?: boolean;
 }) {
-  const operator = chainId ? revLoansAddress[chainId as JBChainId] : undefined;
+  const { data: operator } = useReadRevDeployerLoansOf({
+    revnetId: projectId,
+    chainId: chainId as JBChainId | undefined,
+    enabled: !skip && chainId !== undefined,
+  });
+
   const querySkip =
     skip ||
     !address ||
@@ -27,13 +30,16 @@ export function useHasBorrowPermission({
     !resolvedPermissionsAddress ||
     !operator;
 
-  const { data } = useBendystrawQuery(HasPermissionDocument, {
-    skip: querySkip,
-    account: address as string,
-    chainId: chainId as number,
-    projectId: Number(projectId),
-    operator: operator as string,
-  });
+  const { data } = useBendystrawQuery(
+    HasPermissionDocument,
+    {
+      account: address as string,
+      chainId: chainId as number,
+      projectId: Number(projectId),
+      operator: operator as string,
+    },
+    { enabled: !querySkip }
+  );
 
   return data?.permissionHolder?.permissions?.includes(1) ?? undefined;
 }
