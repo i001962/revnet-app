@@ -14,6 +14,7 @@ import { BorrowDialog } from "./BorrowDialog";
 import { ReallocateDialog } from "./ReallocateDialog";
 import { RepayDialog } from "./RepayDialog";
 import { LoanDetailsTable } from "../LoansDetailsTable";
+import type { Loan } from "@/types/loan";
 import { useAccount } from "wagmi";
 import { useBendystrawQuery } from "@/graphql/useBendystrawQuery";
 import { ProjectDocument, SuckerGroupDocument } from "@/generated/graphql";
@@ -82,7 +83,7 @@ export function UserTokenBalanceCard() {
   const [selectedChainId, setSelectedChainId] = useState<number | null>(null);
   const [showRepayDialog, setShowRepayDialog] = useState(false);
   const borrowDialogTriggerRef = useRef<HTMLButtonElement | null>(null);
-  const [reallocateLoan, setReallocateLoan] = useState<any>(null);
+  const [reallocateLoan, setReallocateLoan] = useState<Loan | null>(null);
   const [showReallocateDialog, setShowReallocateDialog] = useState(false);
 
   return (

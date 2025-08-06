@@ -17,6 +17,7 @@ import { LoanFeeChart } from "../LoanFeeChart";
 import { ImportantInfo } from "./ImportantInfo";
 import { useBorrowDialogState } from "./hooks/useBorrowDialogState";
 import { SimulatedLoanCard } from "../SimulatedLoanCard";
+import type { Loan } from "@/types/loan";
 
 import { BorrowState, borrowStatusMessages } from "./constants/borrowStatus";
 
@@ -30,7 +31,7 @@ export function ReallocateDialog({
 }: {
   projectId: bigint;
   tokenSymbol: string;
-  selectedLoan: any;
+  selectedLoan: Loan;
   children: React.ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;

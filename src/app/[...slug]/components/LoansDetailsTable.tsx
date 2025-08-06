@@ -19,6 +19,7 @@ import {
 import { ChainLogo } from "@/components/ChainLogo";
 import { Button } from "@/components/ui/button";
 import { useProjectBaseToken } from "@/hooks/useProjectBaseToken";
+import type { Loan } from "@/types/loan";
 
 // Constants for loan calculations and display
 const LOAN_CONSTANTS = {
@@ -41,13 +42,13 @@ function LoanRow({
   onReallocateLoan,
   suckerGroupData
 }: {
-  loan: any;
+  loan: Loan;
   revnetId: bigint;
   tokenSymbol: string;
   selectedLoanId?: string;
   now: number;
   onSelectLoan?: (loanId: string, chainId: number) => void;
-  onReallocateLoan?: (loan: any) => void;
+  onReallocateLoan?: (loan: Loan) => void;
   suckerGroupData?: any;
 }) {
   const { token } = useJBTokenContext();
@@ -147,7 +148,7 @@ export function LoanDetailsTable({
   revnetId: bigint;
   address: string;
   onSelectLoan?: (loanId: string, chainId: number) => void;
-  onReallocateLoan?: (loan: any) => void;
+  onReallocateLoan?: (loan: Loan) => void;
   chainId?: number;
   tokenSymbol: string;
   title?: string;

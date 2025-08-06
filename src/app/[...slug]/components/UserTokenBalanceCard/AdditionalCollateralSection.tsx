@@ -1,6 +1,7 @@
 "use client";
 
 import { LoanDetailsTable } from "../LoansDetailsTable";
+import type { Loan } from "@/types/loan";
 
 export function AdditionalCollateralSection({
   projectId,
@@ -13,7 +14,7 @@ export function AdditionalCollateralSection({
   projectId: number;
   address: string;
   cashOutChainId: number;
-  setSelectedLoan: (loan: any) => void;
+  setSelectedLoan: (loan: Loan) => void;
   borrowedEth?: string;
   tokenSymbol: string;
 }) {
@@ -25,7 +26,7 @@ export function AdditionalCollateralSection({
         address={address}
         chainId={cashOutChainId}
         tokenSymbol={tokenSymbol}
-        onSelectLoan={(loanId, loanData) => setSelectedLoan(loanData)}
+        onReallocateLoan={setSelectedLoan}
       />
       {borrowedEth && <p>Borrowed (wei): {borrowedEth}</p>}
     </div>

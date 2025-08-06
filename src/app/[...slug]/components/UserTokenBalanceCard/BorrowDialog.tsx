@@ -17,6 +17,7 @@ import { SimulatedLoanCard } from "../SimulatedLoanCard";
 import { LoanFeeChart } from "../LoanFeeChart";
 import { ImportantInfo } from "./ImportantInfo";
 import { useBorrowDialogState } from "./hooks/useBorrowDialogState";
+import type { Loan } from "@/types/loan";
 import { useEffect, useCallback } from "react";
 import { ChainLogo } from "@/components/ChainLogo";
 import { JB_CHAINS } from "juice-sdk-core";
@@ -39,7 +40,7 @@ export function BorrowDialog({
 }: PropsWithChildren<{
   projectId: bigint;
   tokenSymbol: string;
-  selectedLoan?: any;
+  selectedLoan?: Loan;
 }>) {
   
   const borrowDialog = useBorrowDialogState({
