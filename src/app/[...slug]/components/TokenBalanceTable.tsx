@@ -1,10 +1,8 @@
-import { JBChainId, NATIVE_TOKEN_DECIMALS } from "juice-sdk-core";
-import { useReadRevLoansBorrowableAmountFrom } from "revnet-sdk";
-import { useBendystrawQuery } from "@/graphql/useBendystrawQuery";
-import { LoansByAccountDocument } from "@/generated/graphql";
-import { useEffect, useMemo, useCallback } from "react";
+import { JBChainId } from "juice-sdk-core";
+import { useEffect, useCallback } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ChainLogo } from "@/components/ChainLogo";
+import { useBorrowableAmounts } from "./UserTokenBalanceCard/hooks/useBorrowableAmounts";
 
 // ===== TYPES =====
 type ColumnType = "chain" | "holding" | "borrowable" | "debt" | "collateral";
@@ -24,9 +22,9 @@ interface LoanSummary {
 interface TokenBalanceRowProps {
   chainId: JBChainId;
   balanceValue: bigint;
-  projectId: bigint;
   tokenSymbol: string;
   summary?: LoanSummary;
+  borrowableAmount?: bigint;
   showHeader: boolean;
   columns: ColumnType[];
 }
@@ -45,37 +43,13 @@ interface TokenBalanceTableProps {
 
 // ===== CONSTANTS =====
 const DEFAULT_COLUMNS: ColumnType[] = ["chain", "holding", "borrowable", "debt", "collateral"];
-  const ETH_CURRENCY_ID = 1n;
 
 // ===== UTILITY FUNCTIONS =====
 function formatAmount(value?: bigint): string {
   return value !== undefined ? (Number(value) / 1e18).toFixed(5) : "—";
 }
 
-function summarizeLoansByChain(
-  loans?: Array<{ chainId: number; collateral: string; borrowAmount: string }>
-): Record<number, LoanSummary> {
-  if (!loans) return {};
-  
-  return loans.reduce<Record<number, LoanSummary>>((acc, loan) => {
-    const { chainId, collateral, borrowAmount } = loan;
-    if (!acc[chainId]) {
-      acc[chainId] = { collateral: 0n, borrowAmount: 0n };
-    }
-    acc[chainId].collateral += BigInt(collateral);
-    acc[chainId].borrowAmount += BigInt(borrowAmount);
-    return acc;
-  }, {});
-}
-
 // ===== CUSTOM HOOKS =====
-function useLoanSummary(address: string) {
-  const { data } = useBendystrawQuery(LoansByAccountDocument, {
-    owner: address,
-  });
-
-  return useMemo(() => summarizeLoansByChain(data?.loans?.items), [data?.loans?.items]);
-}
 
 
 
@@ -83,17 +57,12 @@ function useLoanSummary(address: string) {
 function TokenBalanceRow({
   chainId,
   balanceValue,
-  projectId,
   tokenSymbol,
   summary,
+  borrowableAmount,
   showHeader,
   columns,
 }: TokenBalanceRowProps) {
-  const { data: borrowableAmount } = useReadRevLoansBorrowableAmountFrom({
-    chainId,
-    args: [projectId, balanceValue, BigInt(NATIVE_TOKEN_DECIMALS), ETH_CURRENCY_ID],
-  });
-
   const renderCell = useCallback((column: ColumnType) => {
     switch (column) {
       case "chain":
@@ -163,33 +132,27 @@ function TableHeaderRow({ columns }: { columns: ColumnType[] }) {
 function TableRowItem({
   balance,
   index,
-  projectId,
   tokenSymbol,
   columns,
   selectedChainId,
   loanSummary,
+  borrowableAmount,
   onCheckRow,
 }: {
   balance: Balance;
   index: number;
-  projectId: bigint;
   tokenSymbol: string;
   columns: ColumnType[];
   selectedChainId?: number;
   loanSummary: Record<number, LoanSummary>;
+  borrowableAmount?: bigint;
   onCheckRow?: (chainId: number, checked: boolean) => void;
 }) {
   const chainId = balance.chainId as JBChainId;
   const summary = loanSummary[chainId];
 
-  // Get borrowable amount for this chain
-  const { data: borrowableAmount } = useReadRevLoansBorrowableAmountFrom({
-    chainId,
-    args: [projectId, balance.balance.value, BigInt(NATIVE_TOKEN_DECIMALS), ETH_CURRENCY_ID],
-  });
-
   // Check if this chain is selectable (has borrowable amount)
-  const isSelectable = borrowableAmount && borrowableAmount > 0n;
+  const isSelectable = borrowableAmount !== undefined && borrowableAmount > 0n;
 
   const checked = selectedChainId === chainId;
   
@@ -227,9 +190,9 @@ function TableRowItem({
       <TokenBalanceRow
         chainId={chainId}
         balanceValue={balance.balance.value}
-        projectId={projectId}
         tokenSymbol={tokenSymbol}
         summary={summary}
+        borrowableAmount={borrowableAmount}
         showHeader={false}
         columns={columns}
       />
@@ -249,7 +212,11 @@ export function TokenBalanceTable({
   onCheckRow,
   onAutoselectRow,
 }: TokenBalanceTableProps) {
-  const loanSummary = useLoanSummary(address);
+  const { borrowableByChain, loanSummary } = useBorrowableAmounts({
+    projectId,
+    address,
+    balances,
+  });
 
   // Check if selected chain has no borrowable amount, if not auto-select one that does
   useEffect(() => {
@@ -296,11 +263,11 @@ export function TokenBalanceTable({
                     key={`${balance.chainId}-${index}`}
                     balance={balance}
                     index={index}
-                    projectId={projectId}
                     tokenSymbol={tokenSymbol}
                     columns={columns}
                     selectedChainId={selectedChainId}
                     loanSummary={loanSummary}
+                    borrowableAmount={borrowableByChain[balance.chainId]}
                     onCheckRow={onCheckRow}
                   />
                 ))}
