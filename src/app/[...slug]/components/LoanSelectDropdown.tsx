@@ -1,5 +1,6 @@
 import { useBendystrawQuery } from "@/graphql/useBendystrawQuery";
 import { LoansDetailsByAccountDocument } from "@/generated/graphql";
+import type { Loan } from "@/types/loan";
 
 export function LoanSelectDropdown({
   revnetId,
@@ -12,17 +13,7 @@ export function LoanSelectDropdown({
   address: string;
   selectedLoanId: string | null;
   setSelectedLoanId: (id: string) => void;
-  onLoanSelected?: (loan: {
-    id: string;
-    borrowAmount: string;
-    collateral: string;
-    prepaidDuration: number;
-    createdAt: number;
-    projectId: number;
-    terminal: string;
-    token: string;
-    chainId: number;
-  }) => void;
+  onLoanSelected?: (loan: Loan) => void;
 }) {
   const { data } = useBendystrawQuery(LoansDetailsByAccountDocument, {
     owner: address,

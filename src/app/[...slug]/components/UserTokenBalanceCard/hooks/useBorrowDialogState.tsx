@@ -36,6 +36,7 @@ import { USDC_ADDRESSES } from "@/app/constants";
 import { getTokenSymbolFromAddress, createTokenConfigGetter } from "@/lib/tokenUtils";
 
 import { BorrowState } from "../constants/borrowStatus";
+import type { Loan } from "@/types/loan";
 
 
 // Types
@@ -45,7 +46,7 @@ type RepayState = "idle" | "waiting-signature" | "pending" | "success" | "error"
 interface UseBorrowDialogProps {
   projectId: bigint;
   tokenSymbol: string;
-  selectedLoan?: any;
+  selectedLoan?: Loan;
   defaultTab?: "borrow" | "repay";
 }
 
@@ -76,7 +77,7 @@ export function useBorrowDialogState({
   const [prepaidPercent, setPrepaidPercent] = useState("2.5");
   const [nativeToWallet, setNativeToWallet] = useState(0);
   const [grossBorrowedNative, setGrossBorrowedNative] = useState(0);
-  const [internalSelectedLoan, setInternalSelectedLoan] = useState<any | null>(selectedLoan ?? null);
+  const [internalSelectedLoan, setInternalSelectedLoan] = useState<Loan | null>(selectedLoan ?? null);
 
   // Repay-related state
   const [repayStatus, setRepayStatus] = useState<RepayState>("idle");
@@ -413,7 +414,7 @@ export function useBorrowDialogState({
     setInternalSelectedLoan(null);
   }, [balances, projectTokenDecimals]);
 
-  const handleLoanSelection = useCallback((loanId: string, loanData: any) => {
+  const handleLoanSelection = useCallback((loanId: string, loanData: Loan) => {
     setInternalSelectedLoan(loanData);
     // Set the cashOutChainId based on the loan's chain
     if (loanData?.chainId) {
