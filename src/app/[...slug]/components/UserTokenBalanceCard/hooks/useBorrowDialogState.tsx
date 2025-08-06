@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useHasBorrowPermission } from "@/hooks/useHasBorrowPermission";
+import { useReadRevDeployerLoansOf } from "@/hooks/useReadRevDeployerLoansOf";
 import { generateFeeData } from "@/lib/feeHelpers";
 import { toWei } from "@/lib/utils";
 import { useAccount, useWaitForTransactionReceipt, usePublicClient } from "wagmi";
@@ -78,6 +79,12 @@ export function useBorrowDialogState({
   const [nativeToWallet, setNativeToWallet] = useState(0);
   const [grossBorrowedNative, setGrossBorrowedNative] = useState(0);
   const [internalSelectedLoan, setInternalSelectedLoan] = useState<Loan | null>(selectedLoan ?? null);
+
+  const { data: operatorAddress } = useReadRevDeployerLoansOf({
+    revnetId: projectId,
+    chainId: cashOutChainId ? (Number(cashOutChainId) as JBChainId) : undefined,
+    enabled: !!cashOutChainId,
+  });
 
   // Repay-related state
   const [repayStatus, setRepayStatus] = useState<RepayState>("idle");
@@ -544,16 +551,17 @@ export function useBorrowDialogState({
       try {
         setBorrowStatus(BorrowState.Checking);
 
-        if (
-          !walletClient ||
-          !primaryNativeTerminal?.data ||
-          !address ||
-          !borrowableAmountRaw ||
-          !resolvedPermissionsAddress
-        ) {
-          setBorrowStatus(BorrowState.Error);
-          return;
-        }
+          if (
+            !walletClient ||
+            !primaryNativeTerminal?.data ||
+            !address ||
+            !borrowableAmountRaw ||
+            !resolvedPermissionsAddress ||
+            !operatorAddress
+          ) {
+            setBorrowStatus(BorrowState.Error);
+            return;
+          }
 
         const feeBasisPoints = Math.round(parseFloat(prepaidPercent) * 10);
         if (!userHasPermission) {
@@ -567,7 +575,7 @@ export function useBorrowDialogState({
               args: [
                 address as `0x${string}`,
                 {
-                  operator: revLoansAddress[Number(cashOutChainId) as JBChainId],
+                  operator: operatorAddress as `0x${string}`,
                   projectId: effectiveProjectId,
                   permissionIds: [1],
                 },
