@@ -145,7 +145,7 @@ export function PayDialog({
 
     // Get the correct token for the selected chain
     const chainToken = getTokenForChain(selectedSucker.peerChainId);
-    const isNative = chainToken === "0x000000000000000000000000000000000000eeee";
+    const isNative = chainToken.toLowerCase() === NATIVE_TOKEN.toLowerCase();
 
     try {
       if (!isNative) {

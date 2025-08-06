@@ -160,7 +160,7 @@ export function RedeemDialog({
   };
 
   const selectedChainToken = cashOutChainId ? getTokenForChain(Number(cashOutChainId)) : NATIVE_TOKEN;
-  const isNative = selectedChainToken === "0x000000000000000000000000000000000000eeee";
+  const isNative = selectedChainToken.toLowerCase() === NATIVE_TOKEN.toLowerCase();
 
   // Determine what token to receive from cashout
   // For ETH projects: receive ETH (NATIVE_TOKEN)

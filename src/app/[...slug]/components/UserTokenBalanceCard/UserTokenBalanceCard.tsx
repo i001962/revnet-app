@@ -61,7 +61,7 @@ export function UserTokenBalanceCard() {
 
     const allProjects = suckerGroupData.suckerGroup.projects.items;
     return allProjects.every(
-      project => project.token?.toLowerCase() === "0x000000000000000000000000000000000000eeee"
+      project => project.token?.toLowerCase() === NATIVE_TOKEN.toLowerCase()
     );
   })();
 
