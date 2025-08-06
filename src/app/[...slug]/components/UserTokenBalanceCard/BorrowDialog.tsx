@@ -1,6 +1,6 @@
 import { PropsWithChildren } from "react";
 import { formatUnits } from "viem";
-import { NATIVE_TOKEN_DECIMALS, JBChainId } from "juice-sdk-core";
+import { NATIVE_TOKEN, NATIVE_TOKEN_DECIMALS, JBChainId } from "juice-sdk-core";
 import {
   Dialog,
   DialogContent,
@@ -81,9 +81,9 @@ export function BorrowDialog({
   // Get the correct token symbol for the selected chain
   const getTokenSymbolForChain = useCallback((targetChainId: number) => {
     const chainTokenConfig = getTokenConfigForChain(targetChainId);
-    
+
     // Get the actual token symbol from the bendystraw data
-    if (chainTokenConfig?.token?.toLowerCase() === "0x000000000000000000000000000000000000eeee") {
+    if (chainTokenConfig?.token?.toLowerCase() === NATIVE_TOKEN.toLowerCase()) {
       return "ETH";
     }
     

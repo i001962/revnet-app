@@ -1,6 +1,6 @@
 import { useTokenA } from "@/hooks/useTokenA";
 import { FixedInt } from "fpnum";
-import { getTokenAToBQuote, getTokenBtoAQuote } from "juice-sdk-core";
+import { getTokenAToBQuote, getTokenBtoAQuote, NATIVE_TOKEN } from "juice-sdk-core";
 import {
   Field,
   Formik,
@@ -145,7 +145,7 @@ export function PayForm() {
               amountA={_amountA}
               amountB={_amountB}
               memo={memo}
-              paymentToken={(accountingContext?.project?.token as `0x${string}`) || "0x000000000000000000000000000000000000eeee"}
+              paymentToken={(accountingContext?.project?.token as `0x${string}`) || NATIVE_TOKEN}
               disabled={!amountA}
               onSuccess={() => {
                 resetForm();
