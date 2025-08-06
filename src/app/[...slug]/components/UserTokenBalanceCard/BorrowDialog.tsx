@@ -16,7 +16,7 @@ import { ButtonWithWallet } from "@/components/ButtonWithWallet";
 import { SimulatedLoanCard } from "../SimulatedLoanCard";
 import { LoanFeeChart } from "../LoanFeeChart";
 import { ImportantInfo } from "./ImportantInfo";
-import { useBorrowDialog } from "./hooks/useBorrowDialog";
+import { useBorrowDialogState } from "./hooks/useBorrowDialogState";
 import { useEffect, useCallback } from "react";
 import { ChainLogo } from "@/components/ChainLogo";
 import { JB_CHAINS } from "juice-sdk-core";
@@ -40,7 +40,7 @@ export function BorrowDialog({
   selectedLoan?: any;
 }>) {
   
-  const borrowDialog = useBorrowDialog({
+  const borrowDialog = useBorrowDialogState({
     projectId,
     tokenSymbol,
     selectedLoan,
