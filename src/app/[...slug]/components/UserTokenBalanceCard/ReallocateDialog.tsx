@@ -15,7 +15,7 @@ import {
 import { ButtonWithWallet } from "@/components/ButtonWithWallet";
 import { LoanFeeChart } from "../LoanFeeChart";
 import { ImportantInfo } from "./ImportantInfo";
-import { useBorrowDialog } from "./hooks/useBorrowDialog";
+import { useBorrowDialogState } from "./hooks/useBorrowDialogState";
 import { SimulatedLoanCard } from "../SimulatedLoanCard";
 
 export function ReallocateDialog({
@@ -33,7 +33,7 @@ export function ReallocateDialog({
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }) {
-  const reallocateDialog = useBorrowDialog({
+  const reallocateDialog = useBorrowDialogState({
     projectId,
     tokenSymbol,
     selectedLoan,
@@ -103,7 +103,7 @@ export function ReallocateDialog({
     if (borrowStatus === "success" && onOpenChange) {
       setTimeout(() => {
         onOpenChange(false);
-      }, 3000); // Same delay as in useBorrowDialog
+      }, 3000); // Same delay as in useBorrowDialogState
     }
   }, [borrowStatus, onOpenChange]);
 
