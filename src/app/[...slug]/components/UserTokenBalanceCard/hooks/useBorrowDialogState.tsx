@@ -35,21 +35,10 @@ import { ProjectDocument, SuckerGroupDocument } from "@/generated/graphql";
 import { USDC_ADDRESSES } from "@/app/constants";
 import { getTokenSymbolFromAddress, createTokenConfigGetter } from "@/lib/tokenUtils";
 
+import { BorrowState } from "../constants/borrowStatus";
+
 
 // Types
-type BorrowState =
-  | "idle"
-  | "checking"
-  | "granting-permission"
-  | "permission-granted"
-  | "approving"
-  | "waiting-signature"
-  | "pending"
-  | "success"
-  | "error-permission-denied"
-  | "error-loan-canceled"
-  | "error"
-  | "reallocation-pending";
 
 type RepayState = "idle" | "waiting-signature" | "pending" | "success" | "error";
 
@@ -80,7 +69,7 @@ export function useBorrowDialogState({
   const [showingWaitingMessage, setShowingWaitingMessage] = useState(false);
 
   // Borrow-related state
-  const [borrowStatus, setBorrowStatus] = useState<BorrowState>("idle");
+  const [borrowStatus, setBorrowStatus] = useState<BorrowState>(BorrowState.Idle);
   const [collateralAmount, setCollateralAmount] = useState("");
   const [selectedChainId, setSelectedChainId] = useState<number | undefined>(undefined);
   const [cashOutChainId, setCashOutChainId] = useState<string>();
@@ -394,7 +383,7 @@ export function useBorrowDialogState({
       setGrossBorrowedNative(0);
       
       // Clear all status states
-      setBorrowStatus("idle");
+      setBorrowStatus(BorrowState.Idle);
       setRepayStatus("idle");
       setRepayAmount("");
       setCollateralToReturn("");
@@ -441,7 +430,7 @@ export function useBorrowDialogState({
     
     // Validate that we have token configuration for the selected chain
     if (!selectedChainTokenConfig) {
-      setBorrowStatus("error");
+      setBorrowStatus(BorrowState.Error);
       toast({
         variant: "destructive",
         title: "Configuration Error",
@@ -459,7 +448,7 @@ export function useBorrowDialogState({
         !address ||
         !walletClient
       ) {
-        setBorrowStatus("error");
+        setBorrowStatus(BorrowState.Error);
         return;
       }
 
@@ -481,7 +470,7 @@ export function useBorrowDialogState({
       
       // Validate that the reallocation won't result in a borrow amount less than the original
       if (selectedLoanReallocAmount !== undefined && selectedLoanReallocAmount < BigInt(internalSelectedLoan.borrowAmount)) {
-        setBorrowStatus("error");
+        setBorrowStatus(BorrowState.Error);
         toast({
           variant: "destructive",
           title: "Invalid Reallocation",
@@ -497,7 +486,7 @@ export function useBorrowDialogState({
       const baseTokenSymbol = getTokenSymbolFromAddress(selectedChainTokenConfig.token);
 
       try {
-        setBorrowStatus("waiting-signature");
+        setBorrowStatus(BorrowState.WaitingSignature);
 
         // Check allowance for non-ETH base tokens
         if (baseTokenSymbol !== "ETH" && publicClient && walletClient && newLoanBorrowableAmount) {
@@ -512,7 +501,7 @@ export function useBorrowDialogState({
           });
 
           if (BigInt(allowance) < newLoanBorrowableAmount) {
-            setBorrowStatus("approving");
+            setBorrowStatus(BorrowState.Approving);
             
             const approveHash = await walletClient.writeContract({
               address: baseTokenAddress,
@@ -522,7 +511,7 @@ export function useBorrowDialogState({
             });
             
             await publicClient.waitForTransactionReceipt({ hash: approveHash });
-            setBorrowStatus("waiting-signature");
+            setBorrowStatus(BorrowState.WaitingSignature);
           }
         }
 
@@ -542,7 +531,7 @@ export function useBorrowDialogState({
           ],
         });
       } catch (err) {
-        setBorrowStatus("error");
+        setBorrowStatus(BorrowState.Error);
         toast({
           variant: "destructive",
           title: "Reallocation Failed",
@@ -552,7 +541,7 @@ export function useBorrowDialogState({
     } else {
       // Standard borrow path
       try {
-        setBorrowStatus("checking");
+        setBorrowStatus(BorrowState.Checking);
 
         if (
           !walletClient ||
@@ -561,13 +550,13 @@ export function useBorrowDialogState({
           !borrowableAmountRaw ||
           !resolvedPermissionsAddress
         ) {
-          setBorrowStatus("error");
+          setBorrowStatus(BorrowState.Error);
           return;
         }
 
         const feeBasisPoints = Math.round(parseFloat(prepaidPercent) * 10);
         if (!userHasPermission) {
-          setBorrowStatus("granting-permission");
+          setBorrowStatus(BorrowState.GrantingPermission);
           try {
             await walletClient.writeContract({
               account: address,
@@ -583,19 +572,19 @@ export function useBorrowDialogState({
                 },
               ],
             });
-            setBorrowStatus("permission-granted");
+            setBorrowStatus(BorrowState.PermissionGranted);
           } catch (err) {
-            setBorrowStatus("error-permission-denied");
+            setBorrowStatus(BorrowState.ErrorPermissionDenied);
             toast({
               variant: "destructive",
               title: "Permission Denied",
               description: "Permission was not granted. Please approve to proceed.",
             });
-            setTimeout(() => setBorrowStatus("idle"), 5000);
+            setTimeout(() => setBorrowStatus(BorrowState.Idle), 5000);
             return;
           }
         } else {
-          setBorrowStatus("permission-granted");
+          setBorrowStatus(BorrowState.PermissionGranted);
         }
 
         // collateralBigInt should be in project token decimals, not base token decimals
@@ -617,7 +606,7 @@ export function useBorrowDialogState({
           });
 
           if (BigInt(allowance) < estimatedBorrowFromInputOnly) {
-            setBorrowStatus("approving");
+            setBorrowStatus(BorrowState.Approving);
             
             const approveHash = await walletClient.writeContract({
               address: baseTokenAddress,
@@ -627,7 +616,7 @@ export function useBorrowDialogState({
             });
             
             await publicClient.waitForTransactionReceipt({ hash: approveHash });
-            setBorrowStatus("waiting-signature");
+            setBorrowStatus(BorrowState.WaitingSignature);
           }
         }
         const args = [
@@ -643,28 +632,28 @@ export function useBorrowDialogState({
         ] as const;
 
         if (!writeContract) {
-          setBorrowStatus("error");
+          setBorrowStatus(BorrowState.Error);
           return;
         }
 
         try {
-          setBorrowStatus("waiting-signature");
+          setBorrowStatus(BorrowState.WaitingSignature);
           await writeContract({
             chainId: Number(cashOutChainId) as JBChainId,
             args,
           });
         } catch (err) {
-          setBorrowStatus("error-loan-canceled");
+          setBorrowStatus(BorrowState.ErrorLoanCanceled);
           toast({
             variant: "destructive",
             title: "Transaction Cancelled",
             description: "Loan creation was cancelled by user",
           });
-          setTimeout(() => setBorrowStatus("idle"), 5000);
+          setTimeout(() => setBorrowStatus(BorrowState.Idle), 5000);
           return;
         }
       } catch (err) {
-        setBorrowStatus("error");
+        setBorrowStatus(BorrowState.Error);
         toast({
           variant: "destructive",
           title: "Borrow Failed",
@@ -721,7 +710,7 @@ export function useBorrowDialogState({
   // Handle reallocation pending status
   useEffect(() => {
     if (isReallocating) {
-      setBorrowStatus("reallocation-pending");
+      setBorrowStatus(BorrowState.ReallocationPending);
     }
   }, [isReallocating]);
 
@@ -730,9 +719,9 @@ export function useBorrowDialogState({
     if (!txHash && !reallocationTxHash) return;
 
     if (isTxLoading || isReallocationTxLoading) {
-      setBorrowStatus("pending");
+      setBorrowStatus(BorrowState.Pending);
     } else if (isSuccess || isReallocationSuccess) {
-      setBorrowStatus("success");
+      setBorrowStatus(BorrowState.Success);
       const currentTxHash = txHash || reallocationTxHash;
       toast({
         title: "Success",
@@ -742,7 +731,7 @@ export function useBorrowDialogState({
         handleOpenChange(false);
       }, 3000);
     } else {
-      setBorrowStatus("error");
+      setBorrowStatus(BorrowState.Error);
     }
   }, [txHash, reallocationTxHash, isTxLoading, isReallocationTxLoading, isSuccess, isReallocationSuccess, toast, handleOpenChange]);
 
@@ -784,7 +773,7 @@ export function useBorrowDialogState({
 
   // Borrow status effects
   useEffect(() => {
-    if (borrowStatus === "waiting-signature") {
+    if (borrowStatus === BorrowState.WaitingSignature) {
       const timeout = setTimeout(() => setShowingWaitingMessage(true), 250);
       return () => clearTimeout(timeout);
     } else {
@@ -793,8 +782,8 @@ export function useBorrowDialogState({
   }, [borrowStatus]);
 
   useEffect(() => {
-    if (["success", "error", "error-permission-denied", "error-loan-canceled"].includes(borrowStatus)) {
-      const timeout = setTimeout(() => setBorrowStatus("idle"), 5000);
+    if ([BorrowState.Success, BorrowState.Error, BorrowState.ErrorPermissionDenied, BorrowState.ErrorLoanCanceled].includes(borrowStatus)) {
+      const timeout = setTimeout(() => setBorrowStatus(BorrowState.Idle), 5000);
       return () => clearTimeout(timeout);
     }
   }, [borrowStatus]);
