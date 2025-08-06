@@ -1,4 +1,5 @@
 import { USDC_ADDRESSES } from "@/app/constants";
+import { NATIVE_TOKEN } from "juice-sdk-core";
 
 /**
  * Get token symbol from token address
@@ -7,7 +8,7 @@ import { USDC_ADDRESSES } from "@/app/constants";
  */
 export function getTokenSymbolFromAddress(tokenAddress: string): string {
   // Check for ETH (case insensitive)
-  if (tokenAddress?.toLowerCase() === "0x000000000000000000000000000000000000eeee") {
+  if (tokenAddress?.toLowerCase() === NATIVE_TOKEN.toLowerCase()) {
     return "ETH";
   }
   
@@ -38,7 +39,7 @@ export interface TokenConfig {
 export function getTokenConfigForChain(suckerGroupData: any, targetChainId: number): TokenConfig {
   if (!suckerGroupData?.suckerGroup?.projects?.items) {
     return {
-      token: "0x000000000000000000000000000000000000EEEe" as `0x${string}`,
+      token: NATIVE_TOKEN,
       currency: 1,
       decimals: 18
     };
@@ -57,7 +58,7 @@ export function getTokenConfigForChain(suckerGroupData: any, targetChainId: numb
   }
   
   return {
-    token: "0x000000000000000000000000000000000000EEEe" as `0x${string}`,
+    token: NATIVE_TOKEN,
     currency: 1,
     decimals: 18
   };
