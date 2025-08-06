@@ -1,6 +1,4 @@
 import { useEffect } from "react";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { formatUnits } from "viem";
 import { NATIVE_TOKEN_DECIMALS, JBChainId } from "juice-sdk-core";
 import {
@@ -18,6 +16,8 @@ import { ImportantInfo } from "./ImportantInfo";
 import { useBorrowDialogState } from "./hooks/useBorrowDialogState";
 import { SimulatedLoanCard } from "../SimulatedLoanCard";
 import type { Loan } from "@/types/loan";
+
+import { CollateralInput } from "./CollateralInput";
 
 import { BorrowState, borrowStatusMessages } from "./constants/borrowStatus";
 
@@ -171,85 +171,20 @@ export function ReallocateDialog({
               <div className="text-sm text-zinc-600 mb-2">
                 Head room to reallocate: {collateralToTransfer > 0 ? collateralToTransfer.toFixed(6) : "0.000000"} {tokenSymbol}
               </div>
-              <Label htmlFor="additional-collateral" className="block text-gray-700 text-sm font-bold mb-2">
-                How much additional {tokenSymbol} do you want to add as collateral for the new loan?
-              </Label>
-              <Input
-                id="additional-collateral"
-                type="number"
-                step="0.0001"
-                value={collateralAmount}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  
-                  // Allow empty input for clearing
-                  if (value === "") {
-                    setCollateralAmount("");
-                    return;
-                  }
-                  
-                  // Limit decimal places to 8 digits
-                  const decimalIndex = value.indexOf('.');
-                  if (decimalIndex !== -1 && value.length - decimalIndex - 1 > 8) {
-                    return; // Don't update if too many decimal places
-                  }
-                  
-                  const numValue = Number(value);
-                  
-                  // Only validate max if it's a valid number
-                  if (!isNaN(numValue)) {
-                    const maxValue = Number(borrowableAmountFormatted);
-                    
-                    // Prevent entering more than available balance
-                    if (numValue > maxValue) {
-                      setCollateralAmount(maxValue.toFixed(6));
-                    } else {
-                      setCollateralAmount(value);
-                    }
-                  } else {
-                    // Allow partial input (like just a decimal point)
-                    setCollateralAmount(value);
-                  }
-                }}
+              <CollateralInput
+                label={`How much additional ${tokenSymbol} do you want to add as collateral for the new loan?`}
+                tokenSymbol={tokenSymbol}
+                collateralAmount={collateralAmount}
+                onCollateralChange={setCollateralAmount}
+                projectTokenDecimals={projectTokenDecimals}
+                cashOutChainId={cashOutChainId}
+                balances={balances}
+                presetPercents={[10,25,50]}
+                includeZero
                 placeholder="Enter additional amount"
-                className="mb-2"
-                max={borrowableAmountFormatted}
+                maxValue={borrowableAmountFormatted}
+                showChainSelect={false}
               />
-              <div className="flex gap-1 mt-1 mb-2">
-                <div className="flex gap-1 mt-2 mb-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCollateralAmount("0");
-                    }}
-                    className="h-10 px-3 text-sm text-zinc-700 border border-zinc-300 rounded-md bg-white hover:bg-zinc-100 w-16"
-                  >
-                    0
-                  </button>
-                  {[10, 25, 50].map((pct) => (
-                    <button
-                      key={pct}
-                      type="button"
-                      onClick={() => {
-                        const value = Number(borrowableAmountFormatted) * (pct / 100);
-                        setCollateralAmount(value.toString().replace(/\.?0+$/, ""));
-                      }}
-                      className="h-10 px-3 text-sm text-zinc-700 border border-zinc-300 rounded-md bg-white hover:bg-zinc-100 w-16"
-                    >
-                      {pct}%
-                    </button>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCollateralAmount(borrowableAmountFormatted);
-                    }}
-                    className="h-10 px-3 text-sm text-zinc-700 border border-zinc-300 rounded-md bg-white hover:bg-zinc-100 w-16"
-                  >
-                    Max
-                  </button>
-                </div>
-              </div>
             </div>
           )}
           
