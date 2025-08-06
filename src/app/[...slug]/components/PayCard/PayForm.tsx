@@ -25,8 +25,10 @@ export function PayForm() {
     const defaultToken =
       availableTokens.find((t) => t.symbol === defaultSymbol) ||
       availableTokens[0];
-    setSelectedToken(defaultToken);
-  }, [baseTokenInfo, availableTokens]);
+    if (defaultToken && selectedToken.symbol !== defaultToken.symbol) {
+      setSelectedToken(defaultToken);
+    }
+  }, [baseTokenInfo, availableTokens, selectedToken.symbol]);
 
   const { token } = useJBTokenContext();
   const [memo, setMemo] = useState<string>();
