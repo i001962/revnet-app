@@ -25,10 +25,10 @@ import {
   JBProjectToken,
   NATIVE_TOKEN,
   NATIVE_TOKEN_DECIMALS,
+  formatUnits,
 } from "juice-sdk-core";
 import {
   JBChainId,
-  NativeTokenValue,
   useJBChainId,
   useJBContractContext,
   useJBTokenContext,
@@ -38,12 +38,17 @@ import {
 } from "juice-sdk-react";
 import { PropsWithChildren, useState } from "react";
 import { Address, parseUnits, erc20Abi } from "viem";
-import { useAccount, useWaitForTransactionReceipt, usePublicClient, useWalletClient } from "wagmi";
-import { useProjectBaseToken } from "@/hooks/useProjectBaseToken";
+import {
+  useAccount,
+  useWaitForTransactionReceipt,
+  usePublicClient,
+  useWalletClient,
+} from "wagmi";
 import { useToast } from "@/components/ui/use-toast";
 import { useBendystrawQuery } from "@/graphql/useBendystrawQuery";
 import { ProjectDocument, SuckerGroupDocument } from "@/generated/graphql";
 import { useSuckers } from "juice-sdk-react";
+import { createTokenConfigGetter } from "@/lib/tokenUtils";
 
 export function RedeemDialog({
   projectId,
@@ -63,7 +68,9 @@ export function RedeemDialog({
   // const {
   //   contracts: { primaryNativeTerminal },
   // } = useJBContractContext();
-  const primaryNativeTerminal = {data: "0xdb9644369c79c3633cde70d2df50d827d7dc7dbc"};
+  const primaryNativeTerminal = {
+    data: "0xdb9644369c79c3633cde70d2df50d827d7dc7dbc",
+  };
   const { address } = useAccount();
   const { data: balances } = useSuckersUserTokenBalance();
   const [cashOutChainId, setCashOutChainId] = useState<string>();
@@ -72,51 +79,65 @@ export function RedeemDialog({
   const { toast } = useToast();
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
-  const baseToken = useProjectBaseToken();
   const suckersQuery = useSuckers();
   const suckers = suckersQuery.data;
   const { token } = useJBTokenContext();
 
   // Get the selected sucker based on cashOutChainId
-  const selectedSucker = cashOutChainId 
-    ? suckers?.find(s => s.peerChainId === Number(cashOutChainId))
-    : suckers?.find(s => s.peerChainId === chainId);
+  const selectedSucker = cashOutChainId
+    ? suckers?.find((s) => s.peerChainId === Number(cashOutChainId))
+    : suckers?.find((s) => s.peerChainId === chainId);
 
   // Get the correct project ID for the selected chain
   const effectiveProjectId = selectedSucker?.projectId || projectId;
 
   // Get the suckerGroupId from the current project
-  const { data: projectData } = useBendystrawQuery(ProjectDocument, {
-    chainId: Number(chainId),
-    projectId: Number(projectId),
-  }, {
-    enabled: !!chainId && !!projectId,
-  });
+  const { data: projectData } = useBendystrawQuery(
+    ProjectDocument,
+    {
+      chainId: Number(chainId),
+      projectId: Number(projectId),
+    },
+    {
+      enabled: !!chainId && !!projectId,
+    },
+  );
   const suckerGroupId = projectData?.project?.suckerGroupId;
 
   // Get all projects in the sucker group with their token data
-  const { data: suckerGroupData } = useBendystrawQuery(SuckerGroupDocument, {
-    id: suckerGroupId ?? "",
-  }, {
-    enabled: !!suckerGroupId,
-  });
+  const { data: suckerGroupData } = useBendystrawQuery(
+    SuckerGroupDocument,
+    {
+      id: suckerGroupId ?? "",
+    },
+    {
+      enabled: !!suckerGroupId,
+    },
+  );
 
-  // Get the correct decimals for the selected chain's token from bendystraw data
-  const getDecimalsForChain = (targetChainId: number) => {
-    if (!suckerGroupData?.suckerGroup?.projects?.items) {
-      return NATIVE_TOKEN_DECIMALS; // fallback to 18
-    }
-    
-    const projectForChain = suckerGroupData.suckerGroup.projects.items.find(
-      project => project.chainId === targetChainId
-    );
-    
-    return projectForChain?.decimals || NATIVE_TOKEN_DECIMALS;
-  };
+  // Create a token config getter for the sucker group
+  const getTokenConfig = createTokenConfigGetter(suckerGroupData);
+
+  // Get token configuration for the selected chain
+  const {
+    token: selectedChainToken,
+    decimals: quoteDecimals,
+    currency: quoteCurrency,
+  } = getTokenConfig(Number(cashOutChainId ?? chainId ?? 0));
+
+  const isNative =
+    selectedChainToken.toLowerCase() === NATIVE_TOKEN.toLowerCase();
+
+  // Determine what token to receive from cashout
+  // For ETH projects: receive ETH (NATIVE_TOKEN)
+  // For USDC projects: receive USDC (the project's base token)
+  const tokenToReceive = isNative ? NATIVE_TOKEN : selectedChainToken;
+
+  const currencySymbol = quoteCurrency === 3 ? "USD" : "ETH";
 
   // Use project token decimals, not base token decimals
   const projectTokenDecimals = token?.data?.decimals || NATIVE_TOKEN_DECIMALS;
-  
+
   const redeemAmountBN = redeemAmount
     ? JBProjectToken.parse(redeemAmount, projectTokenDecimals).value
     : 0n;
@@ -136,36 +157,11 @@ export function RedeemDialog({
   });
   const loading = isWriteLoading || isTxLoading;
   const selectedBalance = balances?.find(
-    (b) => b.chainId === Number(cashOutChainId)
+    (b) => b.chainId === Number(cashOutChainId),
   );
   const valid =
     redeemAmountBN > 0n &&
     (selectedBalance?.balance.value ?? 0n) >= redeemAmountBN;
-
-  // Get the correct token address for the selected chain
-  const getTokenForChain = (targetChainId: number) => {
-    if (!suckerGroupData?.suckerGroup?.projects?.items) {
-      return NATIVE_TOKEN; // fallback to NATIVE_TOKEN
-    }
-    
-    const projectForChain = suckerGroupData.suckerGroup.projects.items.find(
-      project => project.chainId === targetChainId
-    );
-    
-    if (projectForChain?.token) {
-      return projectForChain.token as `0x${string}`;
-    }
-    
-    return NATIVE_TOKEN; // fallback to NATIVE_TOKEN
-  };
-
-  const selectedChainToken = cashOutChainId ? getTokenForChain(Number(cashOutChainId)) : NATIVE_TOKEN;
-  const isNative = selectedChainToken.toLowerCase() === NATIVE_TOKEN.toLowerCase();
-
-  // Determine what token to receive from cashout
-  // For ETH projects: receive ETH (NATIVE_TOKEN)
-  // For USDC projects: receive USDC (the project's base token)
-  const tokenToReceive = isNative ? NATIVE_TOKEN : selectedChainToken;
 
   return (
     <Dialog open={disabled === true ? false : undefined}>
@@ -180,11 +176,11 @@ export function RedeemDialog({
               ) : (
                 <>
                   <div className="mb-5 w-[65%]">
-                    <span className="text-sm text-black font-medium">
+                    <span className="text-sm font-medium text-black">
                       {" "}
                       Your {tokenSymbol}
                     </span>
-                    <div className="mt-1 border border-zinc-200 p-3 bg-zinc-50">
+                    <div className="mt-1 border border-zinc-200 bg-zinc-50 p-3">
                       {balances?.map((balance, index) => (
                         <div key={index} className="flex justify-between gap-2">
                           {JB_CHAINS[balance.chainId as JBChainId].name}
@@ -211,10 +207,10 @@ export function RedeemDialog({
                           />
                           <div
                             className={
-                              "pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 z-10"
+                              "pointer-events-none absolute inset-y-0 right-0 z-10 flex items-center px-3"
                             }
                           >
-                            <span className="text-zinc-500 sm:text-md">
+                            <span className="sm:text-md text-zinc-500">
                               {tokenSymbol}
                             </span>
                           </div>
@@ -253,28 +249,33 @@ export function RedeemDialog({
                   </div>
 
                   {redeemAmount && cashOutChainId && !valid ? (
-                    <div className="text-red-500 mt-4">
+                    <div className="mt-4 text-red-500">
                       Insuffient {tokenSymbol} on{" "}
                       {JB_CHAINS[Number(cashOutChainId) as JBChainId].name}
                     </div>
                   ) : null}
 
-                  {/*  out until fixed 
                   {redeemAmount && redeemAmountBN > 0n && valid ? (
-                    <div className="text-base mt-4">
+                    <div className="mt-4 text-base">
                       You'll get ~{" "}
                       {redeemQuote ? (
                         <span className="font-medium">
-                          <NativeTokenValue 
-                            wei={((redeemQuote * 975n) / 1000n)} 
-                            decimals={isNative ? 4 : 2} 
-                          />
+                          {Number(
+                            formatUnits(
+                              (redeemQuote * 975n) / 1000n,
+                              quoteDecimals,
+                            ),
+                          ).toLocaleString("en-US", {
+                            minimumFractionDigits: quoteCurrency === 3 ? 2 : 0,
+                            maximumFractionDigits: quoteCurrency === 3 ? 2 : 4,
+                          })}{" "}
+                          {currencySymbol}
                         </span>
                       ) : (
                         <>...</>
                       )}
                     </div>
-                  ) : null} */}
+                  ) : null}
 
                   {isTxLoading ? (
                     <div>Transaction submitted, awaiting confirmation...</div>
@@ -289,7 +290,13 @@ export function RedeemDialog({
                 targetChainId={selectedSucker?.peerChainId as JBChainId}
                 loading={loading || isApproving}
                 onClick={async () => {
-                  if (!primaryNativeTerminal?.data || !address || !redeemAmountBN || !walletClient || !publicClient) {
+                  if (
+                    !primaryNativeTerminal?.data ||
+                    !address ||
+                    !redeemAmountBN ||
+                    !walletClient ||
+                    !publicClient
+                  ) {
                     console.error("Missing required data for cashout");
                     return;
                   }
@@ -298,12 +305,16 @@ export function RedeemDialog({
                     // Check allowance for the project token (what we're redeeming)
                     // We need allowance regardless of whether the project is ETH or USDC based
                     // The project token address should come from the token context, not the base token
-                    const projectTokenAddress = token?.data?.address || selectedChainToken;
+                    const projectTokenAddress =
+                      token?.data?.address || selectedChainToken;
                     const allowance = await publicClient.readContract({
                       address: projectTokenAddress,
                       abi: erc20Abi,
                       functionName: "allowance",
-                      args: [address, primaryNativeTerminal.data as `0x${string}`],
+                      args: [
+                        address,
+                        primaryNativeTerminal.data as `0x${string}`,
+                      ],
                     });
 
                     if (BigInt(allowance) < redeemAmountBN) {
@@ -312,7 +323,10 @@ export function RedeemDialog({
                         address: projectTokenAddress,
                         abi: erc20Abi,
                         functionName: "approve",
-                        args: [primaryNativeTerminal.data as `0x${string}`, redeemAmountBN],
+                        args: [
+                          primaryNativeTerminal.data as `0x${string}`,
+                          redeemAmountBN,
+                        ],
                       });
                       await publicClient.waitForTransactionReceipt({ hash });
                       setIsApproving(false);
@@ -337,7 +351,10 @@ export function RedeemDialog({
                     });
                   } catch (err) {
                     setIsApproving(false);
-                    const errMsg = err instanceof Error ? err.message : "Unknown error during cashout";
+                    const errMsg =
+                      err instanceof Error
+                        ? err.message
+                        : "Unknown error during cashout";
                     console.error("Cashout failed:", err);
                     toast({
                       variant: "destructive",
