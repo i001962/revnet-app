@@ -46,7 +46,11 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { useBendystrawQuery } from "@/graphql/useBendystrawQuery";
 import { ProjectDocument, SuckerGroupDocument } from "@/generated/graphql";
-import { createTokenConfigGetter } from "@/lib/tokenUtils";
+import {
+  createTokenConfigGetter,
+  getTokenSymbolFromAddress,
+} from "@/lib/tokenUtils";
+
 
 export function RedeemDialog({
   projectId,
@@ -136,7 +140,6 @@ export function RedeemDialog({
   const {
     token: selectedChainToken,
     decimals: quoteDecimals,
-    currency: quoteCurrency,
   } = getTokenConfig(Number(cashOutChainId ?? chainId ?? 0));
 
   const isNative =
@@ -147,7 +150,8 @@ export function RedeemDialog({
   // For USDC projects: receive USDC (the project's base token)
   const tokenToReceive = isNative ? NATIVE_TOKEN : selectedChainToken;
 
-  const currencySymbol = quoteCurrency === 3 ? "USD" : "ETH";
+  const tokenSymbol = getTokenSymbolFromAddress(selectedChainToken);
+  const currencySymbol = tokenSymbol === "USDC" ? "USD" : tokenSymbol;
 
   // Use project token decimals, not base token decimals
   const projectTokenDecimals = token?.data?.decimals || NATIVE_TOKEN_DECIMALS;
@@ -286,8 +290,10 @@ export function RedeemDialog({
                               quoteDecimals,
                             ),
                           ).toLocaleString("en-US", {
-                            minimumFractionDigits: quoteCurrency === 3 ? 2 : 0,
-                            maximumFractionDigits: quoteCurrency === 3 ? 2 : 4,
+                            minimumFractionDigits:
+                              currencySymbol === "USD" ? 2 : 0,
+                            maximumFractionDigits:
+                              currencySymbol === "USD" ? 2 : 4,
                           })}{" "}
                           {currencySymbol}
                         </span>
