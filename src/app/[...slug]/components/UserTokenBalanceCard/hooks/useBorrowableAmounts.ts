@@ -3,7 +3,7 @@ import { JBChainId, NATIVE_TOKEN_DECIMALS } from "juice-sdk-core";
 import { useQueries } from "@tanstack/react-query";
 import { useBendystrawQuery } from "@/graphql/useBendystrawQuery";
 import { LoansByAccountDocument } from "@/generated/graphql";
-import { readRevLoansBorrowableAmountFrom } from "revnet-sdk";
+import { useReadRevLoansBorrowableAmountFrom } from "revnet-sdk";
 
 interface Balance {
   chainId: number;
@@ -55,7 +55,7 @@ export function useBorrowableAmounts({
         balance.balance.value.toString(),
       ],
       queryFn: async () =>
-        readRevLoansBorrowableAmountFrom({
+        useReadRevLoansBorrowableAmountFrom({
           chainId: balance.chainId as JBChainId,
           args: [
             projectId,

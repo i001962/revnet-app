@@ -58,8 +58,6 @@ export function useBorrowDialogState({
   defaultTab,
 }: UseBorrowDialogProps) {
   // ===== STATE VARIABLES =====
-  const ETH_CURRENCY_ID = 1n;
-  // ===== STATE VARIABLES =====
   // Dialog and UI state
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedTab, setSelectedTab] = useState<"borrow" | "repay">(defaultTab ?? "borrow");
@@ -242,13 +240,13 @@ export function useBorrowDialogState({
     data: estimatedRepayAmountForCollateral,
     isLoading: isEstimatingRepayment,
   } = useReadRevLoansBorrowableAmountFrom({
-    chainId: internalSelectedLoan?.chainId,
+    chainId: internalSelectedLoan?.chainId as JBChainId | undefined,
     args: internalSelectedLoan
       ? [
           effectiveProjectId,
           BigInt(internalSelectedLoan.collateral),
-          BigInt(JB_TOKEN_DECIMALS), // TODO confirm this is correct
-          BigInt(ETH_CURRENCY_ID), // TODO: This should also be dynamic
+          BigInt(projectTokenDecimals), // Use project token decimals
+          BigInt(selectedChainTokenConfig?.currency || 1), // Use proper currency
         ]
       : undefined,
   });
@@ -256,14 +254,14 @@ export function useBorrowDialogState({
   const {
     data: estimatedNewBorrowableAmount,
   } = useReadRevLoansBorrowableAmountFrom({
-    chainId: internalSelectedLoan?.chainId,
+    chainId: internalSelectedLoan?.chainId as JBChainId | undefined,
     args:
       internalSelectedLoan && remainingCollateral !== undefined
         ? [
             effectiveProjectId,
             remainingCollateral,
-            BigInt(NATIVE_TOKEN_DECIMALS), // TODO: This should also be dynamic
-            BigInt(ETH_CURRENCY_ID), // TODO: This should also be dynamic
+            BigInt(projectTokenDecimals), // Use project token decimals
+            BigInt(selectedChainTokenConfig?.currency || 1), // Use proper currency
           ]
         : undefined,
   });
@@ -426,8 +424,6 @@ export function useBorrowDialogState({
     // Set the cashOutChainId based on the loan's chain
     if (loanData?.chainId) {
       setCashOutChainId(loanData.chainId.toString());
-    } else if (loanData?.chain) {
-      setCashOutChainId(loanData.chain.toString());
     }
   }, []);
 
@@ -526,7 +522,7 @@ export function useBorrowDialogState({
         await reallocateCollateralAsync({
           chainId: Number(cashOutChainId) as JBChainId,
           args: [
-            internalSelectedLoan.id,
+            BigInt(internalSelectedLoan.id),
             collateralCountToTransfer,
             {
               token: selectedChainTokenConfig.token,
@@ -708,8 +704,6 @@ export function useBorrowDialogState({
     // Also set the cashOutChainId based on the loan's chain
     if (selectedLoan?.chainId) {
       setCashOutChainId(selectedLoan.chainId.toString());
-    } else if (selectedLoan?.chain) {
-      setCashOutChainId(selectedLoan.chain.toString());
     }
   }, [selectedLoan]);
 

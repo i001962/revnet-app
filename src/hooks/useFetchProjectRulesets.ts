@@ -30,6 +30,7 @@ export function useFetchProjectRulesets(suckers: SuckerPair[] | undefined | null
   const fetchRuleSets = useCallback(async () => {
     if (!suckers) return undefined;
     setIsLoading(true);
+    setError(null); // Clear any previous errors
     try {
       const allRuleSets = await Promise.all(
         suckers.map((sucker) =>
@@ -62,8 +63,8 @@ export function useFetchProjectRulesets(suckers: SuckerPair[] | undefined | null
   useEffect(() => {
     if (!suckers) return undefined;
     fetchRuleSets();
-    // console.log("ERROR", error)
-  }, [suckers, fetchRuleSets, error]);
+    // Remove error from dependencies to prevent infinite loop
+  }, [suckers, fetchRuleSets]);
 
   return {
     suckerPairsWithRulesets: error ? undefined : suckerPairsWithRulesets,
