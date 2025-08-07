@@ -30,14 +30,13 @@ import {
 import {
   JBChainId,
   useJBChainId,
-  useJBContractContext,
   useJBTokenContext,
   useSuckersUserTokenBalance,
   useTokenCashOutQuoteEth,
   useWriteJbMultiTerminalCashOutTokensOf,
 } from "juice-sdk-react";
-import { PropsWithChildren, useState } from "react";
-import { Address, parseUnits, erc20Abi } from "viem";
+import { PropsWithChildren, useState, useEffect } from "react";
+import { Address, erc20Abi } from "viem";
 import {
   useAccount,
   useWaitForTransactionReceipt,
@@ -47,12 +46,11 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { useBendystrawQuery } from "@/graphql/useBendystrawQuery";
 import { ProjectDocument, SuckerGroupDocument } from "@/generated/graphql";
-import { useSuckers } from "juice-sdk-react";
 import { createTokenConfigGetter } from "@/lib/tokenUtils";
 
 export function RedeemDialog({
   projectId,
-  creditBalance,
+  creditBalance: _creditBalance,
   tokenSymbol,
   primaryTerminalEth,
   disabled,
@@ -74,22 +72,38 @@ export function RedeemDialog({
   const { address } = useAccount();
   const { data: balances } = useSuckersUserTokenBalance();
   const [cashOutChainId, setCashOutChainId] = useState<string>();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const chainId = useJBChainId();
   const [isApproving, setIsApproving] = useState(false);
   const { toast } = useToast();
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
-  const suckersQuery = useSuckers();
-  const suckers = suckersQuery.data;
   const { token } = useJBTokenContext();
 
-  // Get the selected sucker based on cashOutChainId
-  const selectedSucker = cashOutChainId
-    ? suckers?.find((s) => s.peerChainId === Number(cashOutChainId))
-    : suckers?.find((s) => s.peerChainId === chainId);
+  // Set default chain and redeem amount when dialog opens
+  useEffect(() => {
+    if (!isDialogOpen || !balances || balances.length === 0) return;
+    const initialChain = cashOutChainId ?? balances[0].chainId.toString();
+    setCashOutChainId(initialChain);
+    const balance = balances.find((b) => b.chainId === Number(initialChain));
+    setRedeemAmount(balance ? balance.balance.format() : undefined);
+  }, [isDialogOpen, balances]);
 
-  // Get the correct project ID for the selected chain
-  const effectiveProjectId = selectedSucker?.projectId || projectId;
+  // Update redeem amount when switching chains
+  useEffect(() => {
+    if (!isDialogOpen || !balances) return;
+    const balance = balances.find((b) => b.chainId === Number(cashOutChainId));
+    setRedeemAmount(balance ? balance.balance.format() : undefined);
+  }, [cashOutChainId, balances, isDialogOpen]);
+
+  const selectedBalance = balances?.find(
+    (b) => b.chainId === Number(cashOutChainId),
+  );
+
+  // Determine correct project ID based on selected chain
+  const effectiveProjectId = selectedBalance?.projectId
+    ? BigInt(selectedBalance.projectId)
+    : projectId;
 
   // Get the suckerGroupId from the current project
   const { data: projectData } = useBendystrawQuery(
@@ -153,18 +167,21 @@ export function RedeemDialog({
     hash: txHash,
   });
   const { data: redeemQuote } = useTokenCashOutQuoteEth(redeemAmountBN, {
-    chainId: selectedSucker?.peerChainId as JBChainId,
+    chainId: (cashOutChainId
+      ? Number(cashOutChainId)
+      : chainId) as JBChainId,
+    projectId: Number(effectiveProjectId),
   });
   const loading = isWriteLoading || isTxLoading;
-  const selectedBalance = balances?.find(
-    (b) => b.chainId === Number(cashOutChainId),
-  );
   const valid =
     redeemAmountBN > 0n &&
     (selectedBalance?.balance.value ?? 0n) >= redeemAmountBN;
 
   return (
-    <Dialog open={disabled === true ? false : undefined}>
+    <Dialog
+      open={disabled ? false : isDialogOpen}
+      onOpenChange={setIsDialogOpen}
+    >
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="max-w-lg">
         <DialogHeader>
@@ -217,7 +234,10 @@ export function RedeemDialog({
                         </div>
                       </div>
                       <div className="col-span-3">
-                        <Select onValueChange={(v) => setCashOutChainId(v)}>
+                        <Select
+                          value={cashOutChainId}
+                          onValueChange={(v) => setCashOutChainId(v)}
+                        >
                           <SelectTrigger>
                             <SelectValue placeholder="Select chain" />
                           </SelectTrigger>
@@ -287,7 +307,9 @@ export function RedeemDialog({
           <DialogFooter>
             {!isSuccess ? (
               <ButtonWithWallet
-                targetChainId={selectedSucker?.peerChainId as JBChainId}
+                targetChainId={(
+                  cashOutChainId ? Number(cashOutChainId) : chainId
+                ) as JBChainId}
                 loading={loading || isApproving}
                 onClick={async () => {
                   if (
@@ -335,9 +357,7 @@ export function RedeemDialog({
                     const args = [
                       address, // holder
                       effectiveProjectId, // project id (use the correct project ID for the selected chain)
-                      redeemAmount
-                        ? parseUnits(redeemAmount, NATIVE_TOKEN_DECIMALS)
-                        : 0n, // cash out count
+                      redeemAmountBN, // cash out count
                       tokenToReceive, // token to reclaim (what you want to receive)
                       0n, // min tokens reclaimed
                       address, // beneficiary
@@ -345,7 +365,9 @@ export function RedeemDialog({
                     ] as const;
 
                     writeContract?.({
-                      chainId: selectedSucker?.peerChainId as JBChainId,
+                      chainId: (
+                        cashOutChainId ? Number(cashOutChainId) : chainId
+                      ) as JBChainId,
                       address: primaryNativeTerminal.data as `0x${string}`,
                       args,
                     });
