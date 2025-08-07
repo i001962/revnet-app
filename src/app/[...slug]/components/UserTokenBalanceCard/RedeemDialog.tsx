@@ -51,7 +51,6 @@ import {
   getTokenSymbolFromAddress,
 } from "@/lib/tokenUtils";
 
-
 export function RedeemDialog({
   projectId,
   creditBalance: _creditBalance,
@@ -150,8 +149,9 @@ export function RedeemDialog({
   // For USDC projects: receive USDC (the project's base token)
   const tokenToReceive = isNative ? NATIVE_TOKEN : selectedChainToken;
 
-  const tokenSymbol = getTokenSymbolFromAddress(selectedChainToken);
-  const currencySymbol = tokenSymbol === "USDC" ? "USD" : tokenSymbol;
+  const quoteTokenSymbol = getTokenSymbolFromAddress(selectedChainToken);
+  const currencySymbol =
+    quoteTokenSymbol === "USDC" ? "USD" : quoteTokenSymbol;
 
   // Use project token decimals, not base token decimals
   const projectTokenDecimals = token?.data?.decimals || NATIVE_TOKEN_DECIMALS;
@@ -170,12 +170,17 @@ export function RedeemDialog({
   const { isLoading: isTxLoading, isSuccess } = useWaitForTransactionReceipt({
     hash: txHash,
   });
-  const { data: redeemQuote } = useTokenCashOutQuoteEth(redeemAmountBN, {
-    chainId: (cashOutChainId
-      ? Number(cashOutChainId)
-      : chainId) as JBChainId,
-    projectId: Number(effectiveProjectId),
-  });
+
+  const { data: redeemQuote } = useTokenCashOutQuoteEth(
+    redeemAmountBN,
+    {
+      chainId: (
+        cashOutChainId ? Number(cashOutChainId) : chainId
+      ) as JBChainId,
+      projectId: Number(effectiveProjectId),
+    } as any,
+  );
+
   const loading = isWriteLoading || isTxLoading;
   const valid =
     redeemAmountBN > 0n &&
