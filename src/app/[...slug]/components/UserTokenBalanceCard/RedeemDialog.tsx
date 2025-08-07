@@ -170,6 +170,7 @@ export function RedeemDialog({
   const { isLoading: isTxLoading, isSuccess } = useWaitForTransactionReceipt({
     hash: txHash,
   });
+
   const { data: redeemQuote } = useTokenCashOutQuoteEth(
     redeemAmountBN,
     {
@@ -179,6 +180,7 @@ export function RedeemDialog({
       projectId: Number(effectiveProjectId),
     } as any,
   );
+
   const loading = isWriteLoading || isTxLoading;
   const valid =
     redeemAmountBN > 0n &&
