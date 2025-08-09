@@ -17,9 +17,11 @@ export function PayOnSelect() {
   const { selectedSucker, setSelectedSucker } = useSelectedSucker();
 
   useEffect(() => {
-    const defaultSucker = suckers?.find(sucker => chainId === sucker.peerChainId);
-    setSelectedSucker(defaultSucker);
-  }, [suckers, chainId, setSelectedSucker]);
+    if (!selectedSucker && suckers?.length) {
+      const defaultSucker = suckers.find((s) => Number(chainId) === Number(s.peerChainId));
+      if (defaultSucker) setSelectedSucker(defaultSucker);
+    }
+  }, [suckers, chainId, selectedSucker, setSelectedSucker]);
 
   if (!suckers || suckers.length <= 1) {
     return null;
@@ -30,16 +32,17 @@ export function PayOnSelect() {
       <span className="text-md text-black-700">on</span>
       <Select
         onValueChange={(value: string) => {
-          setSelectedSucker(suckers?.find(sucker => sucker.peerChainId === value) || undefined)
+          const next = suckers?.find((s) => Number(s.peerChainId) === Number(value));
+          if (next) setSelectedSucker(next);
         }}
-        defaultValue={selectedSucker?.peerChainId}
+        value={selectedSucker ? String(selectedSucker.peerChainId) : undefined}
       >
         <SelectTrigger className="underline bg-transparent border-none p-0 h-auto text-md text-black-700">
           <SelectValue placeholder="pick a chain" />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="z-[70]">
           {suckers?.map((sucker) => (
-            <SelectItem key={sucker.peerChainId} value={sucker.peerChainId}>
+            <SelectItem key={sucker.peerChainId} value={String(sucker.peerChainId)}>
               {JB_CHAINS[sucker.peerChainId as JBChainId]?.name}
             </SelectItem>
           ))}

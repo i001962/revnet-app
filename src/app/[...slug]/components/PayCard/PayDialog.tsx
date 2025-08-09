@@ -9,13 +9,7 @@ import {
   DialogHeader,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+// Selection UI moved to PayForm
 import { Stat } from "@/components/ui/stat";
 import { useToast } from "@/components/ui/use-toast";
 import {
@@ -27,10 +21,15 @@ import {
 import {
   useJBChainId,
   useJBContractContext,
+  useJBProjectMetadataContext,
   useSuckers,
   useWriteJbMultiTerminalPay,
+  useWriteJbSwapTerminalPay,
+  useReadJbSwapTerminalTokenOut,
+  useReadJbSwapTerminalGetPoolFor,
 } from "juice-sdk-react";
-import { USDC_ADDRESSES } from "@/app/constants";
+import { USDC_ADDRESSES, SUPPORTED_TOKENS } from "@/app/constants";
+import { useProjectBaseToken } from "@/hooks/useProjectBaseToken";
 import { useEffect, useState } from "react";
 import { Address, erc20Abi } from "viem";
 import {
@@ -38,10 +37,15 @@ import {
   useWaitForTransactionReceipt,
   usePublicClient,
   useWalletClient,
+  useBalance,
 } from "wagmi";
 import { useSelectedSucker } from "./SelectedSuckerContext";
 import { useBendystrawQuery } from "@/graphql/useBendystrawQuery";
 import { ProjectDocument, SuckerGroupDocument } from "@/generated/graphql";
+import { grantSwapPoolPermission } from "@/lib/permissions";
+import { addDefaultPool } from "@/lib/swapPools";
+import { useReadRevDeployerPermissions } from "revnet-sdk";
+import { Label } from "@/components/ui/label";
 
 export function PayDialog({
   amountA,
@@ -49,6 +53,8 @@ export function PayDialog({
   splitsAmount,
   memo,
   paymentToken,
+  baseTokenAmountWei,
+  peerChainId,
   disabled,
   onSuccess,
 }: {
@@ -57,6 +63,8 @@ export function PayDialog({
   splitsAmount?: TokenAmountType;
   memo: string | undefined;
   paymentToken: `0x${string}`;
+  baseTokenAmountWei?: bigint;
+  peerChainId?: JBChainId;
   disabled?: boolean;
   onSuccess?: () => void;
 }) {
@@ -73,6 +81,10 @@ export function PayDialog({
     isPending: isWriteLoading,
     data,
   } = useWriteJbMultiTerminalPay();
+  const {
+    writeContract: writeSwapContract,
+    isPending: isSwapWriteLoading,
+  } = useWriteJbSwapTerminalPay();
   const chainId = useJBChainId();
   const { selectedSucker, setSelectedSucker } = useSelectedSucker();
   const txHash = data;
@@ -82,9 +94,17 @@ export function PayDialog({
   const { toast } = useToast();
   const suckersQuery = useSuckers();
   const suckers = suckersQuery.data;
-  const publicClient = usePublicClient();
+  const publicClient = usePublicClient({ chainId: selectedSucker?.peerChainId as number | undefined });
   const { data: walletClient } = useWalletClient();
   const [isApproving, setIsApproving] = useState(false);
+  // All selections are controlled by PayForm
+
+  // Project base token map (per chain)
+  const baseInfo = useProjectBaseToken();
+  // Contracts context (avoid hardcoded addresses)
+  const { contracts } = useJBContractContext();
+  // Project metadata (for name)
+  const { metadata } = useJBProjectMetadataContext();
 
   // Get the suckerGroupId from the current project
   const { data: projectData } = useBendystrawQuery(
@@ -109,7 +129,23 @@ export function PayDialog({
       enabled: !!suckerGroupId,
     },
   );
+  // Resolve project name (from subgraph); fallback to ID if unavailable
+  const projectName: string =
+    (metadata?.data as any)?.name ||
+    (projectData?.project as any)?.name ||
+    `Project #${String(projectId)}`;
 
+
+  const { data: tokenOut } = useReadJbSwapTerminalTokenOut({
+    chainId: selectedSucker?.peerChainId as JBChainId | undefined,
+  }); 
+  // Default pool for (projectId, tokenIn) via SDK (no hardcoded swap terminal address for logic checks)
+  const projectIdForPool = selectedSucker ? (BigInt(selectedSucker.projectId as unknown as string) || 0n) : 0n;
+  const { data: poolForData } = useReadJbSwapTerminalGetPoolFor({
+    chainId: selectedSucker?.peerChainId as JBChainId | undefined,
+    args: [projectIdForPool, paymentToken],
+    query: { enabled: Boolean(selectedSucker?.peerChainId && paymentToken) },
+  });
   // Get the correct token address for the selected chain
   const getTokenForChain = (targetChainId: number) => {
     if (paymentToken.toLowerCase() === NATIVE_TOKEN.toLowerCase()) {
@@ -138,6 +174,20 @@ export function PayDialog({
     }
 
     return paymentToken; // fallback to original paymentToken
+  };
+
+  // Chain context used for routing and addresses
+  const effectivePeerChainId = peerChainId || selectedSucker?.peerChainId || chainId;
+
+  // Balance line item component to safely use hooks per item
+  const BalanceLine = ({ tokenAddr }: { tokenAddr: `0x${string}` }) => {
+    const bal = useBalance({
+      address,
+      chainId: Number(effectivePeerChainId),
+      token: tokenAddr.toLowerCase() === NATIVE_TOKEN.toLowerCase() ? undefined : tokenAddr,
+      query: { enabled: Boolean(address && effectivePeerChainId) },
+    });
+    return <span className="text-xs text-zinc-500">{bal.data?.formatted ?? "0.00"}</span>;
   };
 
   // Auto-reset after successful payment
@@ -173,21 +223,65 @@ export function PayDialog({
     }
   }, [suckers, chainId, projectId, selectedSucker, setSelectedSucker]);
 
-  const loading = isWriteLoading || isTxLoading || isApproving;
+  const loading = isWriteLoading || isSwapWriteLoading || isTxLoading || isApproving;
+
+  // Resolve operator (swap terminal on this chain) and JBPermissions contract
+  const operatorAddress = (contracts as any)?.swapTerminal?.data as `0x${string}` | undefined;
+  const { data: permissionsAddress } = useReadRevDeployerPermissions({
+    chainId: selectedSucker?.peerChainId as JBChainId | undefined,
+  });
 
   const handlePay = async () => {
     if (
       !primaryNativeTerminal?.data ||
       !address ||
       !selectedSucker ||
+      !paymentToken ||
       !walletClient ||
       !publicClient
     )
       return;
 
-    // Get the correct token for the selected chain
-    const chainToken = getTokenForChain(selectedSucker.peerChainId);
-    const isNative = chainToken.toLowerCase() === NATIVE_TOKEN.toLowerCase();
+    // Determine base token for this project on the selected chain (from baseInfo tokenMap)
+    const baseTokenForChain =
+      baseInfo.tokenMap[
+        Number(selectedSucker.peerChainId) as JBChainId
+      ]?.token || NATIVE_TOKEN;
+
+    // Always use the project's base token for payment (swaps disabled)
+    const chainToken = baseTokenForChain;
+    const isNative =
+      chainToken.toLowerCase() === NATIVE_TOKEN.toLowerCase() ||
+      chainToken.toLowerCase() === "0x000000000000000000000000000000000000eeee";
+
+    // amountA.amount.value is already expressed in the currently selected token's decimals.
+    // Do NOT rescale by decimals here; send exactly what the user entered for the selected token.
+    const amountToSpend = value;
+
+    // Swaps disabled → never swap
+    const needsSwap = false;
+    const terminalAddress = needsSwap
+      ? (((contracts as any)?.swapTerminal?.data as `0x${string}`) ?? undefined)
+      : (primaryNativeTerminal.data as `0x${string}`);
+
+    // If swapping, ensure a default pool exists (project-specific or global)
+    if (needsSwap) {
+      const defaultPool = Array.isArray(poolForData) ? (poolForData[0] as `0x${string}` | undefined) : undefined;
+      if (!defaultPool || defaultPool === "0x0000000000000000000000000000000000000000") {
+        toast({
+          variant: "destructive",
+          title: "No default pool configured",
+          description:
+            "This project has no default pool for the selected token on this chain. Add a default pool or pay with the project's base token.",
+        });
+        return;
+      }
+    }
+
+    // Per JBSwapTerminal docs: token is the token being paid in.
+    // - For swap terminal, tokenArg MUST be the user's payment token (chainToken).
+    // - For native, pass 0xeeee... and set value; amount should be 0.
+    const tokenArg: `0x${string}` = chainToken;
 
     try {
       if (!isNative) {
@@ -195,36 +289,96 @@ export function PayDialog({
           address: chainToken,
           abi: erc20Abi,
           functionName: "allowance",
-          args: [address, primaryNativeTerminal.data as `0x${string}`],
+          args: [address, terminalAddress!],
         });
 
-        if (BigInt(allowance) < BigInt(value)) {
+        if (BigInt(allowance) < BigInt(amountToSpend)) {
           setIsApproving(true);
           const hash = await walletClient.writeContract({
             address: chainToken,
             abi: erc20Abi,
             functionName: "approve",
-            args: [primaryNativeTerminal.data as `0x${string}`, value],
+            args: [terminalAddress, amountToSpend],
           });
           await publicClient.waitForTransactionReceipt({ hash });
           setIsApproving(false);
         }
       }
 
-      writeContract?.({
-        chainId: selectedSucker.peerChainId,
-        address: primaryNativeTerminal.data as `0x${string}`,
-        args: [
-          selectedSucker.projectId,
-          chainToken,
-          value,
-          address,
-          0n,
-          memo || "",
-          "0x0",
-        ],
-        value: isNative ? value : 0n,
-      });
+      // Dry-run to catch missing default pool / token acceptance issues before sending
+/*       try {
+        const amountArg = isNative ? 0n : amountToSpend;
+        await publicClient.simulateContract({
+          address: terminalAddress,
+          abi: [
+            {
+              name: "pay",
+              type: "function",
+              stateMutability: "payable",
+              inputs: [
+                { name: "projectId", type: "uint256" },
+                { name: "token", type: "address" },
+                { name: "amount", type: "uint256" },
+                { name: "beneficiary", type: "address" },
+                { name: "minReturnedTokens", type: "uint256" },
+                { name: "memo", type: "string" },
+                { name: "metadata", type: "bytes" },
+              ],
+              outputs: [{ name: "", type: "bytes32" }],
+            },
+          ],
+          functionName: "pay",
+          args: [
+            selectedSucker.projectId,
+            tokenArg,
+            amountArg,
+            address,
+            0n,
+            memo || "",
+            "0x",
+          ],
+          value: isNative ? amountToSpend : 0n,
+          account: address,
+        });
+      } catch (simErr) {
+        const msg = simErr instanceof Error ? simErr.message : String(simErr);
+        if (msg.toLowerCase().includes("nodefaultpooldefined") || msg.toLowerCase().includes("wrongpool") || msg.toLowerCase().includes("tokennotaccepted")) {
+          toast({
+            variant: "destructive",
+            title: "Swap unavailable",
+            description: "This project has no default pool for this token on the selected chain. Switch 'Pay with' to the project's base token (e.g., USDC) or ask the project to configure a default pool.",
+          });
+          return;
+        }
+        // Unknown simulation failure
+        toast({ variant: "destructive", title: "Simulation failed", description: msg });
+        return;
+      } */
+
+      if (!needsSwap) {
+        // Fallback to existing hook for primary terminal; it will be value 0 unless base is native
+        writeContract?.({
+          chainId: selectedSucker.peerChainId,
+          address: terminalAddress,
+          args: [
+            selectedSucker.projectId,
+            tokenArg,
+            isNative ? 0n : amountToSpend,
+            address,
+            0n,
+            memo || "",
+            "0x",
+          ],
+          value: isNative ? amountToSpend : 0n,
+        });
+      } else {
+        toast({
+          title: "Swaps temporarily disabled",
+          description: "Pay with the project's base token only.",
+          variant: "destructive",
+        });
+        return;
+      }
     } catch (err) {
       setIsApproving(false);
       const errMsg =
@@ -256,7 +410,8 @@ export function PayDialog({
                 <div>Success! You can close this window.</div>
               ) : (
                 <>
-                  <div className="flex flex-col gap-6">
+                  {/* Hidden summary block to reduce redundancy; kept for future use */}
+                  <div className="hidden flex-col gap-6">
                     <Stat label="Pay">
                       <TokenAmount amount={amountA} />
                     </Stat>
@@ -279,57 +434,94 @@ export function PayDialog({
           </DialogDescription>
           {!isSuccess ? (
             <div className="flex flex-row items-end justify-between">
-              {suckers && suckers.length > 1 ? (
-                <div className="mt-4 flex flex-col">
-                  <div className="text-sm text-zinc-500">
-                    {amountB.symbol} is available on:
+              <div className="mt-4 flex flex-col gap-3">
+                <Label className="text-zinc-900">Confirm payment</Label>
+                <div className="grid w-[260px] gap-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-zinc-500">Project</span>
+                    <span className="font-medium">{projectName}</span>
                   </div>
-                  <Select
-                    onValueChange={(v) =>
-                      setSelectedSucker(suckers[parseInt(v)])
-                    }
-                    value={
-                      selectedSucker
-                        ? String(suckers.indexOf(selectedSucker))
-                        : undefined
-                    }
-                  >
-                    <SelectTrigger className="w-[200px]">
-                      <SelectValue placeholder="Select chain" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {suckers.map((s, index) => (
-                        <SelectItem
-                          key={s.peerChainId}
-                          value={String(index)}
-                          className="flex items-center gap-2"
-                        >
-                          <div className="flex items-center gap-2">
-                            <ChainLogo chainId={s.peerChainId as JBChainId} />
-                            <span>
-                              {JB_CHAINS[s.peerChainId as JBChainId].name}
-                            </span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="flex justify-between">
+                    <span className="text-zinc-500">Project ID</span>
+                    <span className="font-medium">{String(projectId)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-zinc-500">Network</span>
+                    <span className="font-medium">{effectivePeerChainId ? JB_CHAINS[effectivePeerChainId as JBChainId].name : ""}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-zinc-500">You pay</span>
+                    <span className="font-medium"><TokenAmount amount={amountA} /></span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-zinc-500">You receive</span>
+                    <span className="font-medium"><TokenAmount amount={amountB} /></span>
+                  </div>
                 </div>
-              ) : (
-                selectedSucker && (
-                  <div className="mt-4 flex flex-col">
-                    <div className="text-xs text-slate-500">
-                      {amountB.symbol} is only on:
-                    </div>
-                    <div className="flex min-w-fit flex-row items-center gap-2 border py-2 pl-3 pr-5 ring-offset-white">
-                      <ChainLogo
-                        chainId={selectedSucker.peerChainId as JBChainId}
-                      />
-                      {JB_CHAINS[selectedSucker.peerChainId as JBChainId].name}
-                    </div>
-                  </div>
-                )
-              )}
+                {/* Admin utilities hidden (permission grant, add default pool) */}
+                <div className="hidden justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    className="h-8 px-2 text-xs"
+                    onClick={async () => {
+                      if (!walletClient || !address) return;
+                      try {
+                        if (!operatorAddress || !permissionsAddress) {
+                          toast({
+                            variant: "destructive",
+                            title: "Missing setup",
+                            description: "Operator or permissions contract unknown on this chain.",
+                          });
+                          return;
+                        }
+                        await grantSwapPoolPermission({
+                          walletClient,
+                          account: address,
+                          permissionsContract: permissionsAddress as `0x${string}`,
+                          operator: operatorAddress as `0x${string}`,
+                          projectId: 0n, // global default; pass selectedSucker.projectId for scoped
+                        });
+                        toast({ title: "Permission granted" });
+                      } catch (err) {
+                        console.error("Permission grant failed", err);
+                        toast({ variant: "destructive", title: "Permission grant failed" });
+                      }
+                    }}
+                  >
+                    Grant swap-pool permission
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="h-8 px-2 text-xs"
+                    onClick={async () => {
+                      if (!walletClient || !address) return;
+                      try {
+                        if (!selectedSucker?.peerChainId) return;
+                        const swapTerminal = (contracts as any)?.swapTerminal?.data as `0x${string}` | undefined;
+                        if (!swapTerminal) { toast({ variant: "destructive", title: "Swap terminal unavailable on this chain" }); return; }
+                        // Hardcode Base mainnet WETH/USDC 0.05% pool from your note
+                        const pool = "0x6c6Bc977E13Df9b0de53b251522280BB72383700" as `0x${string}`;
+                        // Token for default pool: use canonical native placeholder casing per your guidance
+                        const token = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE" as `0x${string}`;
+                        await addDefaultPool({
+                          walletClient,
+                          account: address,
+                          swapTerminal,
+                          projectId: BigInt(selectedSucker.projectId),
+                          token,
+                          pool,
+                        });
+                        toast({ title: "Default pool added" });
+                      } catch (err) {
+                        console.error("Add default pool failed", err);
+                        toast({ variant: "destructive", title: "Add default pool failed" });
+                      }
+                    }}
+                  >
+                    Add default pool
+                  </Button>
+                </div>
+              </div>
               <ButtonWithWallet
                 targetChainId={
                   selectedSucker?.peerChainId as JBChainId | undefined
@@ -338,7 +530,7 @@ export function PayDialog({
                 onClick={handlePay}
                 className="bg-teal-500 hover:bg-teal-600"
               >
-                Pay
+                {paymentToken.toLowerCase() === NATIVE_TOKEN.toLowerCase() ? "Pay" : isApproving ? "Approving..." : "Approve & Pay"}
               </ButtonWithWallet>
             </div>
           ) : null}

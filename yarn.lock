@@ -6365,18 +6365,18 @@ json5@^2.2.3:
     object.assign "^4.1.4"
     object.values "^1.1.6"
 
-juice-sdk-core@^1.8.9-beta:
-  version "1.8.9-beta"
-  resolved "https://registry.yarnpkg.com/juice-sdk-core/-/juice-sdk-core-1.8.9-beta.tgz#951ca50d0a5690022359e096416f52f2c1f46a32"
-  integrity sha512-FmKwivkiy6Kr2szaWmUXM94ZcK/hpt9nsFwHM7ADnfN/bIbpPi4hNz3s3kpJGRhohsy7mLUVus0lOq91cm8+bg==
+juice-sdk-core@1.8.9:
+  version "1.8.9"
+  resolved "https://registry.yarnpkg.com/juice-sdk-core/-/juice-sdk-core-1.8.9.tgz#a9756fbcd93f2288470853defc861bab1a9aa610"
+  integrity sha512-0ReEe/lgObhMTNNCLsdd/HfO/s2Gc+p5gUJ//qizhNYa+Pgp5fbMKfHz7/JTaMNnG7Xr9SK0BHduoBWvHZ/IJw==
   dependencies:
     bs58 "^5.0.0"
     fpnum "^1.0.0"
 
-juice-sdk-react@^1.9.16-beta:
-  version "1.9.16-beta"
-  resolved "https://registry.yarnpkg.com/juice-sdk-react/-/juice-sdk-react-1.9.16-beta.tgz#2ad5de86bcaaa3b20c5cfad0397042dc26bfd809"
-  integrity sha512-Z88NV1lfOnIKB5bbITekbxnbl5QkPDVCcF6dlRZtj7BTFyHuMFIW2j+IILNqtsHrn820QesYIgcD9kbXUYEePw==
+juice-sdk-react@1.9.16:
+  version "1.9.16"
+  resolved "https://registry.yarnpkg.com/juice-sdk-react/-/juice-sdk-react-1.9.16.tgz#c3dfe723c836f14357fe40071e0d8a208ffca165"
+  integrity sha512-yFx61BXd3IUMJ44/DhNhnQGVVq5331TYZSPoK0yAutnPsHc//8B2o7wUylxHXKEdTxPEfARP0NDVJlb5ZR7uKA==
 
 keccak@^3.0.3:
   version "3.0.4"
@@ -7718,10 +7718,10 @@ reusify@^1.0.4:
   resolved "https://registry.yarnpkg.com/reusify/-/reusify-1.1.0.tgz#0fe13b9522e1473f51b558ee796e08f11f9b489f"
   integrity sha512-g6QUff04oZpHs0eG5p83rFLhHeV00ug/Yf9nZM6fLeUrPguBTkTQOdpAWWspMh55TZfVQDPaN3NQJfbVRAxdIw==
 
-revnet-sdk@^1.1.1-beta:
-  version "1.1.1-beta"
-  resolved "https://registry.yarnpkg.com/revnet-sdk/-/revnet-sdk-1.1.1-beta.tgz#9d098428fb48f7fbf30f6cc1343f77e528be6289"
-  integrity sha512-d2PFdoH9uTNDoPcqaZBXhmL9zOHQnGcNFIN8WcTcwOR74AIRw2ROMSNoPSOY+DAW021QQ2a2PuW2xFGhxge2DQ==
+revnet-sdk@1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/revnet-sdk/-/revnet-sdk-1.1.1.tgz#0f50c7524c0311c4f096f88cf1afb5daf52eccdf"
+  integrity sha512-VnttC064TH8coD0Z4sQdv8JPWE5zudwPRZJb3wuZCbuKmnVyQA4yO9ycQ6/KpVnFMe3KuFG7vBP3GKx99NULZQ==
 
 rfdc@^1.3.0:
   version "1.4.1"
